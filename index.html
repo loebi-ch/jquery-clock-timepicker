@@ -1,0 +1,29 @@
+<html>
+ <head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0" />
+  <title>jQuery Clock Time Picker</title>
+  <script type="text/javascript" src="node_modules/jquery/dist/jquery.min.js"></script>
+  <script type="text/javascript" src="jquery-clock-timepicker.min.js"></script>
+  <script type="text/javascript">
+    $(document).ready(function() {
+	  $('.time').clockTimePicker({});
+	});
+  </script>
+  <style type="text/css">
+    h1 { font-size: 20px; margin-bottom:3px; }
+	h3 { font-size: 13px; margin-top:0px; }
+	.main { text-align: center; }
+    .time { display:inline-block; font-size:26px; padding:5px; text-align:center; width:80px; }
+  </style>
+ </head>
+ <body>
+  <div class="main">
+   <h1>jQuery Clock Time Picker</h1>
+   <h3>jquery-clock-timepicker</h3>
+   <p>Please choose your time:</p>
+   <input class="time" type="text" value="14:30" />
+   <p>A free jQuery Plug-in to select the time with a clock inspired by the Android time picker. This plugin works on Desktop and Mobile phones.</p>
+  </div>
+ </body>
+</html>

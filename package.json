@@ -1,0 +1,26 @@
+{
+	"name": "jquery-clock-timepicker",
+	"version": "1.0.0",
+	"author": {
+		"name": "Andreas Loeber",
+		"url": "https://github.com/loebi-ch"
+	},
+	"license": "MIT",
+	"dependencies": {
+		"jquery": ">=1.7"
+	},
+	"main": "jquery-clock-timepicker.min.js",
+	"description": "A free jQuery Plug-in to select the time with a clock inspired by the Android time picker. This plugin works on Desktop and Mobile phones.",
+	"keywords": [ "timepicker", "clock", "time", "picker", "jquery", "android", "responsive", "mobile" ],
+	"homepage": "http://github.com/loebi-ch/jquery-clock-timepicker",
+	"scripts": {
+		"test": "echo \"Error: no test specified\" && exit 1"
+	},
+	"repository": {
+		"type": "git",
+		"url": "https://github.com/loebi-ch/jquery-clock-timepicker.git"
+	},
+	"bugs": {
+		"url": "https://github.com/loebi-ch/jquery-clock-timepicker/issues"
+	}
+}
