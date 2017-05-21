@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 1.0.0
+ * Version: 1.0.1
  */
  (function($) {
 	
@@ -200,6 +200,9 @@
 					hideTimePicker();
 					inputElement.trigger('blur');
 				}
+				else if (event.keyCode == 186) { //:
+					//TODO: Only allow : once
+				}
 				else {
 					event.preventDefault();
 				}
@@ -368,9 +371,12 @@
 				var selectorAngle = (360 * Math.atan((y - clockCenterY)/(x - clockCenterX)) / (2 * Math.PI)) + 90;
 				var selectorLength = Math.sqrt(Math.pow(Math.abs(x - clockCenterX), 2) + Math.pow(Math.abs(y - clockCenterY), 2));
 				
-				(new RegExp('^([0-9]{2}):([0-9]{2})$')).test(inputElement.val());
-				var hour = parseInt(RegExp.$1);
-				var min = parseInt(RegExp.$2);
+				var hour = 0;
+				var min = 0;
+				if ((new RegExp('^([0-9]{2}):([0-9]{2})$')).test(inputElement.val())) {
+					hour = parseInt(RegExp.$1);
+					min = parseInt(RegExp.$2);
+				}
 				
 				if (selectionMode == 'HOUR') {
 					selectorAngle = Math.round(selectorAngle / 30);
@@ -654,6 +660,8 @@
 				popup.css('display', 'none');
 				if (isMobile()) {
 					darkenScreen.stop().animate({opacity: 0}, 300, function() { darkenScreen.css('display', 'none'); });
+				} else {
+					element.val(formatTime(element.val()));
 				}
 			}
 			
@@ -731,12 +739,19 @@
 			 ************************************************************************************************/	
 			function formatTime(time) {
 				if (time == '') return time;
-				var regex = new RegExp('^([0-9]{1,2})(:([0-9]{1,2}))?');
-				if (regex.test(time)) {
-					var hour = RegExp.$1;
-					var min = RegExp.$3;
-					time = (hour.length == 1 ? '0' : '') + hour + ':' + (min ? (min.length == 1 ? '0' : '') + min : '00');
-				} else {
+				if ((new RegExp('^([0-9]{1,2})(:([0-9]{1,2}))?')).test(time)) {
+					var hour = parseInt(RegExp.$1);
+					var min = parseInt(RegExp.$3);
+					if (hour >= 24) hour = hour % 24;
+					if (min >= 60) min = min % 60;
+					time = (hour < 10 ? '0' : '') + hour + ':' + (RegExp.$3 ? (min < 10 ? '0' : '') + min : '00');
+				}
+				else if ((new RegExp('^:([0-9]{1,2})')).test(time)) {
+					var min = parseInt(RegExp.$1);
+					if (min >= 60) min = min % 60;
+					time = '00:' + (min < 10 ? '0' : '') + min;
+				}
+				else {
 					time = '00:00';
 				}
 				return time;

@@ -1,7 +1,7 @@
 Clock Timepicker Plugin for jQuery
 ==================================
 
-[<img src="http://plugins.slyweb.ch/jquery-clock-timepicker/screenshot.png" alt="jquery-clock-timepicker screenshot" />]
+<img src="http://plugins.slyweb.ch/jquery-clock-timepicker/screenshot.png" alt="jquery-clock-timepicker screenshot" />
 
 [See a demo here](http://plugins.slyweb.ch/jquery-clock-timepicker)
 
@@ -30,7 +30,7 @@ $('.your-time-field').clockTimePicker(options);
 
 Include the file `jquery-clock-timepicker.min.js` in your page. There is no need of a CSS file.
 
-The Plug-in is highly customizable through the optional ```options``` object passed to the jQuery method.
+The Plug-in is customizable through the optional ```options``` object passed to the jQuery method.
 
 
 Options (in alphabetical order)
