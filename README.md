@@ -33,32 +33,32 @@ Include the file `jquery-clock-timepicker.min.js` in your page. There is no need
 The Plug-in is customizable through the optional ```options``` object passed to the jQuery method.
 
 
-Options (in alphabetical order)
--------------------------------
+Options
+-------
 
 - **afternoonHoursInOuterCircle**  
 Set this option to true to display the afternoon hours in the outer circle instead of the inner circle.  
 *default: false*
 
-- **colors.buttonColor**  
-The color of the buttons display on the mobile phone.  
+- **colors.buttonTextColor**  
+The text color of the buttons display on the mobile phone.  
 *default: '#0797FF'*
 
-- **colors.clockColor**  
-The color of the clock.  
+- **colors.clockFaceColor**  
+The color of the clock face.  
 *default: '#EEEEEE'*
 
-- **colors.clockInnerCircleHoursColor**  
-The color of the hours displayed in the inner circle.  
+- **colors.clockInnerCircleTextColor**  
+The text color of the numbers displayed in the inner circle.  
 *default: '#888888'*
 
-- **colors.clockMinutesColor**  
-The color of the minutes displayed in the outer circle.  
+- **colors.clockOuterCircleTextColor**  
+The text color of the numbers displayed in the outer circle.  
 *default: '#000000'*
 
-- **colors.clockOuterCircleHoursColor**  
-The color of the hours displayed in the outer circle.  
-*default: '#000000'*
+- **colors.hoverCircleColor**  
+The color of the circle when hovering over an hour or minute.  
+*default: '#DDDDDD'*
 
 - **colors.popupBackgroundColor**  
 The background color of the popup.  
@@ -68,17 +68,13 @@ The background color of the popup.
 The background color of the popup header displayed only on the mobile phone.  
 *default: '#0797FF'*
 
-- **colors.popupHeaderColor**  
+- **colors.popupHeaderTextColor**  
 The text color of the popup header displayed only on the mobile phone.  
 *default: '#FFFFFF'*
 
 - **colors.selectorColor**  
 The color of the time selector.  
 *default: '#0797FF'*
-
-- **colors.selectorHoverCircleColor**  
-The color of the circle when hovering over an hour or minute.  
-*default: '#DDDDDD'*
 
 - **colors.selectorNumberColor**  
 The text color of the number that is selected.  
@@ -111,6 +107,22 @@ The name of the button to confirm the time change. Only displayed on mobile phon
 - **modeSwitchSpeed**  
 The speed in milliseconds of the switch animation when changing between hour and minute selection.  
 *default: 500*
+
+- **onChange**  
+Called always when the time value has been changed.  
+*default: function(newValue, oldValue) {}*
+
+- **onClose**  
+Called when timepicker popup has been closed.  
+*default: function() {}*
+
+- **onModeSwitch**  
+Called when timepicker is switching between hour and minute selection mode. Argument *selectionMode* is "HOUR" or "MINUTE".  
+*default: function(selectionMode) {}*
+
+- **onOpen**  
+Called when timepicker popup has been opened.  
+*default: function() {}*
 
 - **popupWidthOnDesktop**  
 The width of the popup in the Desktop version in pixels. On the mobile phone the width is automatically calculated.

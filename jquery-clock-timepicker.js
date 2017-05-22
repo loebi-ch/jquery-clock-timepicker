@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 1.0.1
+ * Version: 1.0.3
  */
  (function($) {
 	
@@ -11,13 +11,18 @@
 		  DEFAULT SETTINGS (CAN BE OVERRIDDEN WITH THE OPTIONS ARGUMENT)
 		 ************************************************************************************************/
 		var settings = $.extend({
-			popupWidthOnDesktop: 200,
 			afternoonHoursInOuterCircle: false,
-			modeSwitchSpeed: 500,
-			vibrate: true,
-			i18n: {
-				okButton: 'OK',
-				cancelButton: 'Cancel'
+			colors: {
+				buttonTextColor: '#0797FF',
+				clockFaceColor: '#EEEEEE',
+				clockInnerCircleTextColor: '#888888',
+				clockOuterCircleTextColor: '#000000',
+				hoverCircleColor: '#DDDDDD',
+				popupBackgroundColor: '#FFFFFF',
+				popupHeaderBackgroundColor: '#0797FF',
+				popupHeaderTextColor: '#FFFFFF',				
+				selectorColor: '#0797FF',				
+				selectorNumberColor: '#FFFFFF'
 			},
 			fonts: {
 				fontFamily: 'Arial',
@@ -25,19 +30,17 @@
 				clockInnerCircleFontSize: 12,
 				buttonFontSize: 20
 			},
-			colors: {
-				popupBackgroundColor: '#FFFFFF',
-				popupHeaderColor: '#FFFFFF',
-				popupHeaderBackgroundColor: '#0797FF',
-				clockColor: '#EEEEEE',
-				clockOuterCircleHoursColor: '#000000',
-				clockInnerCircleHoursColor: '#888888',
-				clockMinutesColor: '#000000',
-				selectorColor: '#0797FF',
-				selectorNumberColor: '#FFFFFF',
-				selectorHoverCircleColor: '#DDDDDD',
-				buttonColor: '#0797FF'
-			}
+			i18n: {
+				okButton: 'OK',
+				cancelButton: 'Cancel'
+			},
+			modeSwitchSpeed: 500,
+			onChange: function(newVal, oldVal) { /*console.log('Value changed from ' + oldVal + ' to ' + newVal + '.');*/ },
+			onClose: function() {},
+			onModeSwitch: function() {},
+			onOpen: function() {},
+			popupWidthOnDesktop: 200,
+			vibrate: true
 		}, options);
 		
 		
@@ -64,6 +67,8 @@
 			  INITIALIZE VARIABLES
 			 ************************************************************************************************/
 			var element = $(this);
+			element.val(formatTime(element.val()));
+			var oldValue = element.val();
 			var selectionMode = 'HOUR'; //2 modes: 'HOUR' or 'MINUTE'
 			var isDragging = false;
 			var hasJustGotFocus = false;
@@ -74,13 +79,6 @@
 			var clockCenterY = parseInt(canvasSize / 2);
 			var clockOuterRadius = clockRadius - 16;
 			var clockInnerRadius = clockOuterRadius - 29;
-			
-			
-			
-			/************************************************************************************************
-			  MAKE SURE THAT THE INPUT ELEMENT HAS A VALID TIME VALUE
-			 ************************************************************************************************/
-			element.val(formatTime(element.val()));
 			
 			
 			
@@ -176,20 +174,46 @@
 							.css('fontSize', isMobile() ? '40px' : '20px')
 							.css('padding', '10px 0px')
 							.css('textAlign', 'center')
-							.css('color', settings.colors.popupHeaderColor)
+							.css('color', settings.colors.popupHeaderTextColor)
 							.css('backgroundColor', settings.colors.popupHeaderBackgroundColor);
 				inputElement.prop('readonly', true);
 				popup.append(inputElement);
 			}
+			inputElement.on('dragenter', function(event) { event.stopImmediatePropagation(); event.preventDefault(); return false; });
+			inputElement.on('dragover', function(event) { event.stopImmediatePropagation(); event.preventDefault(); return false; });
+			inputElement.on('drop', function(event) { event.stopImmediatePropagation(); event.preventDefault(); return false; });
+			inputElement.on('keyup', function(event) {
+				var newValue = formatTime(inputElement.val());
+				if ((event.keyCode >= 48 && event.keyCode <= 57) &&
+				    (inputElement[0].selectionStart == 2 ||
+					(new RegExp('^[0-9]{2}:$').test(inputElement.val())) ||
+					inputElement.val().length == 5)) {
+					inputElement.val(newValue);
+					switchToMinuteMode();
+					selectMinuteOnInputElement();
+				}
+				else if ((event.keyCode == 8 || event.keyCode == 46) && inputElement.val() && inputElement.val()[inputElement.val().length-1] == ':') {
+					newValue = formatTime(inputElement.val() + '00');
+					inputElement.val(newValue);
+					selectMinuteOnInputElement();
+				}
+				else if ((event.keyCode == 8 || event.keyCode == 46) && inputElement.val() && inputElement.val()[0] == ':') {
+					newValue = formatTime('00' + inputElement.val());
+					inputElement.val(newValue);
+					selectHourOnInputElement();
+				}
+				if (oldValue != newValue) {
+					repaintClock();
+					settings.onChange(newValue, oldValue);
+				}
+			});
 			inputElement.on('keydown', function(event) {
-				if ((event.keyCode >= 48 && event.keyCode <= 57) || event.keyCode == 8) { //NUMBERS OR BACKSPACE
-					setTimeout(function() {
-						var regex = new RegExp('^((0|1)[0-9]{1}|2[0-3]{1}):[0-5]{1}[0-9]{1}$');
-						if (!regex.test(inputElement.val())) {
-							console.log('TODO: Wrong time!');
-						}
-						repaintClock();
-					}, 10);
+				oldValue = formatTime(inputElement.val());
+				if (event.keyCode >= 48 && event.keyCode <= 57) { //NUMBERS
+					if (inputElement.val().length == 5 && inputElement[0].selectionStart == 5 && event.keyCode != 8) {
+						event.preventDefault();
+						return false;
+					}
 				}
 				else if (event.keyCode == 9) {} //TABULATOR
 				else if (event.keyCode == 13) { //ENTER
@@ -200,13 +224,74 @@
 					hideTimePicker();
 					inputElement.trigger('blur');
 				}
-				else if (event.keyCode == 186) { //:
-					//TODO: Only allow : once
+				else if (event.keyCode == 8 || event.keyCode == 46) { //BACKSPACE OR DELETE
+					if (inputElement[0].selectionStart == 0 && inputElement[0].selectionEnd == 2) {
+						event.preventDefault();
+						if (inputElement.val().substring(0, 2) == '00') {
+							inputElement.val('');
+							switchToHourMode();
+						} else {
+							inputElement.val('00:' + inputElement.val().substring(3));
+							selectHourOnInputElement();
+						}
+					} else if (inputElement[0].selectionStart == 3 && inputElement[0].selectionEnd == 5) {
+						event.preventDefault();
+						if (inputElement.val().substring(3) == '00') {
+							if (inputElement.val() == '00:00') inputElement.val('');
+							switchToHourMode();
+							selectHourOnInputElement();
+						} else {
+							inputElement.val(inputElement.val().substring(0, 2) + ':00');
+							selectMinuteOnInputElement();
+						}
+					}
+				}
+				else if ((event.keyCode == 36 || event.keyCode == 37) && inputElement.val() != '') { //ARROW LEFT OR HOME
+					inputElement.val(formatTime(inputElement.val()));
+					selectHourOnInputElement();
+					switchToHourMode();
+				}
+				else if ((event.keyCode == 35 || event.keyCode == 39) && inputElement.val() != '') { //ARROW RIGHT OR END
+					inputElement.val(formatTime(inputElement.val()));
+					selectMinuteOnInputElement();
+					switchToMinuteMode();
+				}
+				else if (event.keyCode == 190) { //COLON OR DOT
+					event.preventDefault();
+					if (inputElement.val().length == 0) inputElement.val('0');
+					inputElement.val(formatTime(inputElement.val()));
+					selectMinuteOnInputElement();
+					switchToMinuteMode();
+				}
+				else if (event.keyCode == 38 || event.keyCode == 40) { //ARROW UP OR DOWN
+					event.preventDefault();
+					if (oldValue == '') return;
+					(new RegExp('^([0-9]{1,2})(:([0-9]{1,2}))?$')).test(inputElement.val());
+					var h = parseInt(RegExp.$1);
+					var m = RegExp.$3 ? parseInt(RegExp.$3) : 0;
+					if (selectionMode == 'HOUR') {
+						if (event.keyCode == 38) h -= 1;
+						else h += 1;
+						if (h == -1) h = 23;
+						if (h == 24) h = 0;
+					} else {
+						if (event.keyCode == 38) m -= 1;
+						else m += 1;
+						if (m == -1) m = 59;
+						if (m == 60) m = 0;
+					}
+					inputElement.val((h < 10 ? '0': '') + h + ':' + (m < 10 ? '0' : '') + m);
+					repaintClock();
+					if (selectionMode == 'HOUR') selectHourOnInputElement();
+					else selectMinuteOnInputElement();
 				}
 				else {
 					event.preventDefault();
 				}
-			});			
+			});
+			element.on('mousewheel', function(event) {
+				processMouseWheelEvent(event);
+			});
 			element.on('blur', function(event) {
 				setTimeout(function() {
 					if ($(document.activeElement)[0] != $('body')[0] && !$.contains(element.parent()[0], $(document.activeElement)[0])) {
@@ -225,21 +310,17 @@
 				}
 			});
 			inputElement.on('click', function(event) {
-				if (hasJustGotFocus) return;
-				if (inputElement[0].selectionStart >= 3) {
-					if (selectionMode == 'HOUR' && settings.vibrate) navigator.vibrate(10);
-					switchToMinuteMode();
-					selectMinuteOnInputElement();
-				}
-				else {
-					if (selectionMode == 'MINUTE' && settings.vibrate) navigator.vibrate(10);
-					switchToHourMode();
-					selectHourOnInputElement();
-				}
+				processClick(event);
+			});
+			inputElement.on('contextmenu', function(event) {
+				event.stopImmediatePropagation();
+				event.preventDefault();
+				processClick(event);
+				return false;
 			});
 			
 			
-			
+						
 			/************************************************************************************************
 			  INITIALIZE CLOCK CANVASES
 			 ************************************************************************************************/
@@ -280,7 +361,7 @@
 				buttonArea.css('text-align', 'right')
 						  .css('padding', '15px 30px');
 				buttonArea.html('<div id="log"></div>');
-				var buttonHtml = '<a style="text-decoration:none; color:' + settings.colors.buttonColor + '; font-family:Arial; font-size:' + settings.fonts.buttonFontSize + 'px; padding-left:30px">';
+				var buttonHtml = '<a style="text-decoration:none; color:' + settings.colors.buttonTextColor + '; font-family:Arial; font-size:' + settings.fonts.buttonFontSize + 'px; padding-left:30px">';
 				var cancelButton = $(buttonHtml);
 				cancelButton.html(settings.i18n.cancelButton);
 				cancelButton.on('click', function() {
@@ -334,6 +415,10 @@
 						if (selectionMode == 'HOUR') repaintClockHourCanvas();
 						else repaintClockMinuteCanvas();
 					});
+					
+					canvas.on('mousewheel', function(event) {
+						processMouseWheelEvent(event);
+					});
 				}
 				
 				//Touch Events for Mobile Version
@@ -360,6 +445,53 @@
 						}
 					});
 				}
+			}
+			
+			
+			
+			/************************************************************************************************
+			  PROCESSES LEFT OR RIGHT MOUSE CLICK AND SINGLE TAP ON MOBILE PHONES
+			 ************************************************************************************************/	
+			function processClick(event) {
+				if (hasJustGotFocus) return;
+				if (inputElement[0].selectionStart >= 3) {
+					if (selectionMode == 'HOUR' && settings.vibrate) navigator.vibrate(10);
+					switchToMinuteMode();
+					selectMinuteOnInputElement();
+				}
+				else {
+					if (selectionMode == 'MINUTE' && settings.vibrate) navigator.vibrate(10);
+					switchToHourMode();
+					selectHourOnInputElement();
+				}
+			}
+			
+			
+			
+			/************************************************************************************************
+			  PROCESSES THE MOUSE WHEEL EVENT AND INCREASES OR DECREASES HOURS OR MINUTES
+			 ************************************************************************************************/	
+			function processMouseWheelEvent(event) {
+				if (!((inputElement[0].selectionStart == 0 && inputElement[0].selectionEnd == 2) ||
+				      (inputElement[0].selectionStart == 3 && inputElement[0].selectionEnd == 5))) return;
+				var e = window.event || event; // old IE support
+				var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+				(new RegExp('^([0-9]{1,2})(:([0-9]{1,2}))?$')).test(inputElement.val());
+				var h = parseInt(RegExp.$1);
+				var m = RegExp.$3 ? parseInt(RegExp.$3) : 0;
+				if (selectionMode == 'HOUR') {
+					h += delta;
+					if (h == -1) h = 23;
+					if (h == 24) h = 0;
+				} else {
+					m += delta;
+					if (m == -1) m = 59;
+					if (m == 60) m = 0;
+				}
+				inputElement.val((h < 10 ? '0': '') + h + ':' + (m < 10 ? '0' : '') + m);
+				repaintClock();
+				if (selectionMode == 'HOUR') selectHourOnInputElement();
+				else selectMinuteOnInputElement();
 			}
 			
 			
@@ -402,8 +534,12 @@
 					if (h > -1) {
 						var newVal = (h < 10 ? '0' : '') + h + ':' + (min < 10 ? '0' : '') + min;
 						if (isDragging || clicked) {
-							if (newVal != inputElement.val() && settings.vibrate) navigator.vibrate(10);
-							inputElement.val(newVal);						
+							var oldVal = inputElement.val();
+							if (newVal != oldVal && settings.vibrate) navigator.vibrate(10);
+							inputElement.val(newVal);
+							if (newVal != oldVal) {
+								setTimeout(function() { settings.onChange(newVal, oldVal); }, 10);
+							}
 						}
 						repaintClockHourCanvas(h == 0 ? 24 : h);
 						return true;
@@ -427,8 +563,12 @@
 					if (m > -1) {
 						var newVal = (hour < 10 ? '0' : '') + hour + ':' + (m < 10 ? '0' : '') + m;
 						if (isDragging || clicked) {
-							if (newVal != inputElement.val() && settings.vibrate) navigator.vibrate(10);
+							var oldVal = inputElement.val();
+							if (newVal != oldVal && settings.vibrate) navigator.vibrate(10);
 							inputElement.val(newVal);
+							if (newVal != oldVal) {
+								setTimeout(function() { settings.onChange(newVal, oldVal); }, 10);
+							}
 						}
 						repaintClockMinuteCanvas(m == 0 ? 60 : m);
 						return true;
@@ -461,15 +601,16 @@
 			function repaintClockHourCanvas(hoverHour) {
 				
 				var ctx = clockHourCanvas.get(0).getContext('2d');
-				(new RegExp('^([0-9]{2}):([0-9]{2})$')).test(inputElement.val());
+				(new RegExp('^([0-9]{1,2}):([0-9]{1,2})$')).test(inputElement.val());
 				var hour = parseInt(RegExp.$1);
 				if (hour == 0) hour = 24;
+				if (!inputElement.val()) hour = -1;
 				
 				//Paint clock circle			
 				ctx.clearRect(0, 0, canvasSize, canvasSize);
 				ctx.beginPath();
 				ctx.arc(clockCenterX, clockCenterY, clockRadius, 0, 2 * Math.PI, false);
-				ctx.fillStyle = settings.colors.clockColor;
+				ctx.fillStyle = settings.colors.clockFaceColor;
 				ctx.fill();
 				
 				//Paint hover (if available)
@@ -478,7 +619,7 @@
 					ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((hoverHour % 12) - 3)) * (hoverHour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
 							clockCenterY + Math.sin(Math.PI / 6 * ((hoverHour % 12) - 3)) * (hoverHour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
 							15, 0, 2 * Math.PI, false);
-					ctx.fillStyle = settings.colors.selectorHoverCircleColor;
+					ctx.fillStyle = settings.colors.hoverCircleColor;
 					ctx.fill();
 				}
 				
@@ -487,19 +628,21 @@
 				ctx.arc(clockCenterX, clockCenterY, 3, 0, 2 * Math.PI, false);
 				ctx.fillStyle = settings.colors.selectorColor;
 				ctx.fill();
-				ctx.beginPath();
-				ctx.moveTo(clockCenterX, clockCenterY);
-				ctx.lineTo(clockCenterX + Math.cos(Math.PI / 6 * ((hour % 12) - 3)) * (hour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
-						   clockCenterY + Math.sin(Math.PI / 6 * ((hour % 12) - 3)) * (hour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)));
-				ctx.lineWidth = 1;
-				ctx.strokeStyle = settings.colors.selectorColor;
-				ctx.stroke();
-				ctx.beginPath();
-				ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((hour % 12) - 3)) * (hour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
-						clockCenterY + Math.sin(Math.PI / 6 * ((hour % 12) - 3)) * (hour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
-						15, 0, 2 * Math.PI, false);
-				ctx.fillStyle = settings.colors.selectorColor;
-				ctx.fill();
+				if (hour > -1) {
+					ctx.beginPath();
+					ctx.moveTo(clockCenterX, clockCenterY);
+					ctx.lineTo(clockCenterX + Math.cos(Math.PI / 6 * ((hour % 12) - 3)) * (hour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
+							   clockCenterY + Math.sin(Math.PI / 6 * ((hour % 12) - 3)) * (hour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)));
+					ctx.lineWidth = 1;
+					ctx.strokeStyle = settings.colors.selectorColor;
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((hour % 12) - 3)) * (hour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
+							clockCenterY + Math.sin(Math.PI / 6 * ((hour % 12) - 3)) * (hour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
+							15, 0, 2 * Math.PI, false);
+					ctx.fillStyle = settings.colors.selectorColor;
+					ctx.fill();
+				}
 				
 				//Paint hour numbers in outer circle
 				ctx.font = settings.fonts.clockOuterCircleFontSize + 'px ' + settings.fonts.fontFamily;
@@ -509,11 +652,11 @@
 					if (settings.afternoonHoursInOuterCircle) {
 						s = i + 12;
 						if (hour == i + 12) ctx.fillStyle = settings.colors.selectorNumberColor;
-						else ctx.fillStyle = settings.colors.clockInnerCircleHoursColor;
+						else ctx.fillStyle = settings.colors.clockInnerCircleTextColor;
 						if (s == 24) s = '00';
 					} else {
 						if (hour == i) ctx.fillStyle = settings.colors.selectorNumberColor;
-						else ctx.fillStyle = settings.colors.clockOuterCircleHoursColor;
+						else ctx.fillStyle = settings.colors.clockOuterCircleTextColor;
 					}
 					ctx.fillText(s,
 								 clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
@@ -528,11 +671,11 @@
 					if (!settings.afternoonHoursInOuterCircle) {
 						s = i + 12;
 						if (hour == i + 12) ctx.fillStyle = settings.colors.selectorNumberColor;
-						else ctx.fillStyle = settings.colors.clockInnerCircleHoursColor;
+						else ctx.fillStyle = settings.colors.clockInnerCircleTextColor;
 						if (s == 24) s = '00';
 					} else {
 						if (hour == i) ctx.fillStyle = settings.colors.selectorNumberColor;
-						else ctx.fillStyle = settings.colors.clockOuterCircleHoursColor;
+						else ctx.fillStyle = settings.colors.clockOuterCircleTextColor;
 					}
 					ctx.fillText(s,
 								 clockCenterX + Math.cos(angle) * clockInnerRadius - (ctx.measureText(s).width / 2),
@@ -548,14 +691,15 @@
 			function repaintClockMinuteCanvas(hoverMinute) {
 				
 				var ctx = clockMinuteCanvas.get(0).getContext('2d');				
-				(new RegExp('^([0-9]{2}):([0-9]{2})$')).test(inputElement.val());
+				(new RegExp('^([0-9]{1,2}):([0-9]{1,2})$')).test(inputElement.val());
 				var min = parseInt(RegExp.$2);
+				if (!inputElement.val()) min = -1;
 				
 				//Paint clock circle				
 				ctx.clearRect(0, 0, canvasSize, canvasSize);
 				ctx.beginPath();
 				ctx.arc(clockCenterX, clockCenterY, clockRadius, 0, 2 * Math.PI, false);
-				ctx.fillStyle = settings.colors.clockColor;
+				ctx.fillStyle = settings.colors.clockFaceColor;
 				ctx.fill();
 				
 				//Paint hover (if available)
@@ -565,7 +709,7 @@
 					ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((hoverMinute / 5) - 3)) * clockOuterRadius,
 							clockCenterY + Math.sin(Math.PI / 6 * ((hoverMinute / 5) - 3)) * clockOuterRadius,
 							15, 0, 2 * Math.PI, false);
-					ctx.fillStyle = settings.colors.selectorHoverCircleColor;
+					ctx.fillStyle = settings.colors.hoverCircleColor;
 					ctx.fill()
 				}
 				
@@ -574,26 +718,28 @@
 				ctx.arc(clockCenterX, clockCenterY, 3, 0, 2 * Math.PI, false);
 				ctx.fillStyle = settings.colors.selectorColor;
 				ctx.fill();
-				ctx.beginPath();
-				ctx.moveTo(clockCenterX, clockCenterY);
-				ctx.lineTo(clockCenterX + Math.cos(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius,
-						   clockCenterY + Math.sin(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius);
-				ctx.lineWidth = 1;
-				ctx.strokeStyle = settings.colors.selectorColor;
-				ctx.stroke();
-				ctx.beginPath();
-				ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius,
-						clockCenterY + Math.sin(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius,
-						15, 0, 2 * Math.PI, false);
-				ctx.fillStyle = settings.colors.selectorColor;
-				ctx.fill();
+				if (min > -1) {
+					ctx.beginPath();
+					ctx.moveTo(clockCenterX, clockCenterY);
+					ctx.lineTo(clockCenterX + Math.cos(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius,
+							   clockCenterY + Math.sin(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius);
+					ctx.lineWidth = 1;
+					ctx.strokeStyle = settings.colors.selectorColor;
+					ctx.stroke();
+					ctx.beginPath();
+					ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius,
+							clockCenterY + Math.sin(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius,
+							15, 0, 2 * Math.PI, false);
+					ctx.fillStyle = settings.colors.selectorColor;
+					ctx.fill();
+				}
 				
 				//Paint minute numbers 00 - 55
 				ctx.font = settings.fonts.clockOuterCircleFontSize + 'px ' + settings.fonts.fontFamily;
 				for(i = 1; i <= 12; i++) {
 					var angle = Math.PI / 6 * (i - 3);
 					if (min == i * 5 || (min == 0 && i == 12)) ctx.fillStyle = settings.colors.selectorNumberColor;
-					else ctx.fillStyle = settings.colors.clockMinutesColor;
+					else ctx.fillStyle = settings.colors.clockOuterCircleTextColor;
 					var s = i * 5 == 5 ? '05' : i * 5;
 					if (s == 60) s = '00';
 					ctx.fillText(s,
@@ -602,7 +748,7 @@
 				}
 				
 				//For numbers not dividable by 5 paint a little white dot in the selector circle
-				if (min % 5 != 0) {
+				if (min > -1 && min % 5 != 0) {
 					ctx.beginPath();
 					ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius,
 							clockCenterY + Math.sin(Math.PI / 6 * ((min / 5) - 3)) * clockOuterRadius,
@@ -649,6 +795,7 @@
 						popup.css('top', element.outerHeight() + 'px');
 					}
 				}
+				settings.onOpen();
 			}
 			
 			
@@ -663,6 +810,7 @@
 				} else {
 					element.val(formatTime(element.val()));
 				}
+				settings.onClose();
 			}
 			
 			
@@ -688,6 +836,7 @@
 									  .css('opacity', 1)
 									  .css('zIndex', 1);
 				selectionMode = 'HOUR';
+				settings.onModeSwitch(selectionMode);
 			}
 			
 			
@@ -706,6 +855,7 @@
 										.css('zIndex', 1)
 										.animate({opacity: 1, zoom:'100%', left:'0px', top:'0px'});
 				selectionMode = 'MINUTE';
+				settings.onModeSwitch(selectionMode);
 			}
 			
 			
