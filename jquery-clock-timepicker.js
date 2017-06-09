@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 1.0.3
+ * Version: 1.0.4
  */
  (function($) {
 	
@@ -69,6 +69,8 @@
 			var element = $(this);
 			element.val(formatTime(element.val()));
 			var oldValue = element.val();
+			var changeHandler = element[0].onchange;
+			element[0].onchange = '';
 			var selectionMode = 'HOUR'; //2 modes: 'HOUR' or 'MINUTE'
 			var isDragging = false;
 			var hasJustGotFocus = false;
@@ -205,6 +207,7 @@
 				if (oldValue != newValue) {
 					repaintClock();
 					settings.onChange(newValue, oldValue);
+					if (changeHandler) changeHandler(event);
 				}
 			});
 			inputElement.on('keydown', function(event) {
@@ -538,7 +541,10 @@
 							if (newVal != oldVal && settings.vibrate) navigator.vibrate(10);
 							inputElement.val(newVal);
 							if (newVal != oldVal) {
-								setTimeout(function() { settings.onChange(newVal, oldVal); }, 10);
+								setTimeout(function() {
+									settings.onChange(newVal, oldVal);
+									if (changeHandler) changeHandler(event);
+								}, 10);
 							}
 						}
 						repaintClockHourCanvas(h == 0 ? 24 : h);
@@ -567,7 +573,10 @@
 							if (newVal != oldVal && settings.vibrate) navigator.vibrate(10);
 							inputElement.val(newVal);
 							if (newVal != oldVal) {
-								setTimeout(function() { settings.onChange(newVal, oldVal); }, 10);
+								setTimeout(function() {
+									settings.onChange(newVal, oldVal);
+									if (changeHandler) changeHandler(event);
+								}, 10);
 							}
 						}
 						repaintClockMinuteCanvas(m == 0 ? 60 : m);
