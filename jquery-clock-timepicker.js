@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 1.0.4
+ * Version: 1.0.5
  */
  (function($) {
 	
@@ -311,6 +311,12 @@
 					showTimePicker();
 					selectHourOnInputElement();
 				}
+			});
+			element.on('change', function(event) {
+				if (popup.css('display') == 'none') return;
+				repaintClock();
+				if (selectionMode == 'HOUR') selectHourOnInputElement();
+				else selectMinuteOnInputElement();
 			});
 			inputElement.on('click', function(event) {
 				processClick(event);
