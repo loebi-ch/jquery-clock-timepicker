@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 1.0.5
+ * Version: 1.0.6
  */
  (function($) {
 	
@@ -24,6 +24,7 @@
 				selectorColor: '#0797FF',				
 				selectorNumberColor: '#FFFFFF'
 			},
+			duration: false,
 			fonts: {
 				fontFamily: 'Arial',
 				clockOuterCircleFontSize: 14,
@@ -35,6 +36,7 @@
 				cancelButton: 'Cancel'
 			},
 			modeSwitchSpeed: 500,
+			onlyShowClockOnMobile: false,
 			onChange: function(newVal, oldVal) { /*console.log('Value changed from ' + oldVal + ' to ' + newVal + '.');*/ },
 			onClose: function() {},
 			onModeSwitch: function() {},
@@ -782,6 +784,7 @@
 				inputElement.val(element.val());
 				repaintClockHourCanvas();
 				switchToHourMode(true);
+				if (!isMobile() && settings.onlyShowClockOnMobile) popup.css('opacity', 0);
 				popup.css('display', 'block');
 				if (isMobile()) {
 					darkenScreen.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
@@ -907,7 +910,7 @@
 				if ((new RegExp('^([0-9]{1,2})(:([0-9]{1,2}))?')).test(time)) {
 					var hour = parseInt(RegExp.$1);
 					var min = parseInt(RegExp.$3);
-					if (hour >= 24) hour = hour % 24;
+					if (hour >= 24 && !settings.duration) hour = hour % 24;
 					if (min >= 60) min = min % 60;
 					time = (hour < 10 ? '0' : '') + hour + ':' + (RegExp.$3 ? (min < 10 ? '0' : '') + min : '00');
 				}

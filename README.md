@@ -80,6 +80,10 @@ The color of the time selector.
 The text color of the number that is selected.  
 *default: '#FFFFFF'*
 
+- **duration**  
+If true, the hours can be greater than 23.  
+*default: false*
+
 - **fonts.buttonFontSize**  
 The font size of the buttons. These buttons are only displayed in the mobile version.  
 *default: 20*
@@ -107,6 +111,10 @@ The name of the button to confirm the time change. Only displayed on mobile phon
 - **modeSwitchSpeed**  
 The speed in milliseconds of the switch animation when changing between hour and minute selection.  
 *default: 500*
+
+- **onlyShowClockOnMobile**  
+If true, the clock time picker is not shown on Desktop version.  
+*default: false*
 
 - **onChange**  
 Called always when the time value has been changed.  
