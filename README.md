@@ -133,8 +133,12 @@ Called when timepicker popup has been opened.
 *default: function() {}*
 
 - **popupWidthOnDesktop**  
-The width of the popup in the Desktop version in pixels. On the mobile phone the width is automatically calculated.
+The width of the popup in the Desktop version in pixels. On the mobile phone the width is automatically calculated.  
 *default: 200*
+
+- **precision**  
+When setting the precision to i.e. 15, user may only choose time in 15 minutes steps (8:30, 8:45, 9:00).  
+*default: 1*
 
 - **vibrate**  
 If this is activated the mobile phone vibrates while changing the time.  

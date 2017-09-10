@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 1.0.6
+ * Version: 1.0.7
  */
  (function($) {
 	
@@ -42,6 +42,7 @@
 			onModeSwitch: function() {},
 			onOpen: function() {},
 			popupWidthOnDesktop: 200,
+			precision: 1,
 			vibrate: true
 		}, options);
 		
@@ -209,7 +210,7 @@
 				if (oldValue != newValue) {
 					repaintClock();
 					settings.onChange(newValue, oldValue);
-					if (changeHandler) changeHandler(event);
+					//if (changeHandler) changeHandler(event);
 				}
 			});
 			inputElement.on('keydown', function(event) {
@@ -280,10 +281,10 @@
 						if (h == -1) h = 23;
 						if (h == 24) h = 0;
 					} else {
-						if (event.keyCode == 38) m -= 1;
-						else m += 1;
-						if (m == -1) m = 59;
-						if (m == 60) m = 0;
+						if (event.keyCode == 38) m -= settings.precision;
+						else m += settings.precision;
+						if (m < 0) m = 60 + m;
+						if (m >= 60) m = m - 60;
 					}
 					inputElement.val((h < 10 ? '0': '') + h + ':' + (m < 10 ? '0' : '') + m);
 					repaintClock();
@@ -551,7 +552,7 @@
 							if (newVal != oldVal) {
 								setTimeout(function() {
 									settings.onChange(newVal, oldVal);
-									if (changeHandler) changeHandler(event);
+									//if (changeHandler) changeHandler(event);
 								}, 10);
 							}
 						}
@@ -575,6 +576,14 @@
 						}
 					}
 					if (m > -1) {
+
+						//settings.precision
+						if (settings.precision != 1) {
+							var f = Math.floor(m / settings.precision);
+							m = f * settings.precision + (Math.round((m - f * settings.precision) / settings.precision) == 1 ? settings.precision : 0);
+							if (m >= 60) m = 0;
+						}
+
 						var newVal = (hour < 10 ? '0' : '') + hour + ':' + (m < 10 ? '0' : '') + m;
 						if (isDragging || clicked) {
 							var oldVal = inputElement.val();
@@ -583,7 +592,7 @@
 							if (newVal != oldVal) {
 								setTimeout(function() {
 									settings.onChange(newVal, oldVal);
-									if (changeHandler) changeHandler(event);
+									//if (changeHandler) changeHandler(event);
 								}, 10);
 							}
 						}
@@ -822,13 +831,22 @@
 			  HIDES THE TIME PICKER
 			 ************************************************************************************************/
 			function hideTimePicker() {
+				var newValue = formatTime(element.val());
 				popup.css('display', 'none');
 				if (isMobile()) {
 					darkenScreen.stop().animate({opacity: 0}, 300, function() { darkenScreen.css('display', 'none'); });
 				} else {
-					element.val(formatTime(element.val()));
+					element.val(newValue);
 				}
 				settings.onClose();
+				if (changeHandler && oldValue != newValue) {
+					var changeEvent = {
+						target: element.get(0),
+						oldValue: oldValue,
+						newValue: newValue
+					};
+					changeHandler(changeEvent);
+				}
 			}
 			
 			
@@ -912,6 +930,14 @@
 					var min = parseInt(RegExp.$3);
 					if (hour >= 24 && !settings.duration) hour = hour % 24;
 					if (min >= 60) min = min % 60;
+
+					//settings.precision
+					if (settings.precision != 1) {
+						var f = Math.floor(min / settings.precision);
+						min = f * settings.precision + (Math.round((min - f * settings.precision) / settings.precision) == 1 ? settings.precision : 0);
+						if (min >= 60) min = 0;
+					}
+
 					time = (hour < 10 ? '0' : '') + hour + ':' + (RegExp.$3 ? (min < 10 ? '0' : '') + min : '00');
 				}
 				else if ((new RegExp('^:([0-9]{1,2})')).test(time)) {
