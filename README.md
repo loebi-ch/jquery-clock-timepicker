@@ -40,6 +40,10 @@ Options
 Set this option to true to display the afternoon hours in the outer circle instead of the inner circle.  
 *default: false*
 
+- **autosize**  
+Set this to true, if the width of the input field should be automatically adjusted to its content.  
+*default: false*
+
 - **colors.buttonTextColor**  
 The text color of the buttons display on the mobile phone.  
 *default: '#0797FF'*
@@ -84,6 +88,10 @@ The text color of the number that is selected.
 If true, the hours can be greater than 23.  
 *default: false*
 
+- **durationNegative**  
+If true, the duration can be negative. This settings only has effect if the setting **duration** is set to true.  
+*default: false*
+
 - **fonts.buttonFontSize**  
 The font size of the buttons. These buttons are only displayed in the mobile version.  
 *default: 20*
@@ -108,6 +116,14 @@ The name of the button to cancel the time change. Only displayed on mobile phone
 The name of the button to confirm the time change. Only displayed on mobile phones.  
 *default: 'OK'*
 
+- **maximum**  
+(NOT IMPLEMENTED YET) You may define the maximum duration/time.  
+*default: null*
+
+- **minimum**  
+(NOT IMPLEMENTED YET) You may define the minimum duration/time.  
+*default: null*
+
 - **modeSwitchSpeed**  
 The speed in milliseconds of the switch animation when changing between hour and minute selection.  
 *default: 500*
@@ -117,7 +133,7 @@ If true, the clock time picker is not shown on Desktop version.
 *default: false*
 
 - **onChange**  
-Called always when the time value has been changed.  
+Called when the time value has been changed.  
 *default: function(newValue, oldValue) {}*
 
 - **onClose**  
@@ -137,8 +153,16 @@ The width of the popup in the Desktop version in pixels. On the mobile phone the
 *default: 200*
 
 - **precision**  
-When setting the precision to i.e. 15, user may only choose time in 15 minutes steps (8:30, 8:45, 9:00).  
+When setting the precision to i.e. 5, user may only choose time in 5 minutes steps (8:00, 8:05, 8:10, ...). Valid values for precision are: 1, 5, 10, 15, 30, 60.  
 *default: 1*
+
+- **separator**  
+The separator separating the hour and the minute parts.  
+*default: :*
+
+- **useAmPm**  
+(NOT IMPLEMENTED YET) Set to true, if you want to use the American/Canadian time with AM and PM.  
+*default: false*
 
 - **vibrate**  
 If this is activated the mobile phone vibrates while changing the time.  
