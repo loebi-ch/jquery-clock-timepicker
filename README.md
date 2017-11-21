@@ -30,7 +30,29 @@ $('.your-time-field').clockTimePicker(options);
 
 Include the file `jquery-clock-timepicker.min.js` in your page. There is no need of a CSS file.
 
-The Plug-in is customizable through the optional ```options``` object passed to the jQuery method.
+The Plug-in is customizable through the optional ```options``` object passed to the jQuery method, i.e.
+
+```javascript
+$('.your-time-field').clockTimePicker({
+	duration: true,
+	durationNegative: true,
+	precision: 5,
+	i18n: {
+		cancelButton: 'Abbrechen'
+	},
+	onAdjust: function(newVal, oldVal) {
+		//...
+	}
+});
+```
+
+If you want to set new options during runtime (after an input element already has been intialized), just call the function again with all desired options.
+
+If you want to dispose/destroy an initialized clock time picker element, please use the following code:
+
+```javascript
+$('.your-time-field').clockTimePicker('dispose');
+```
 
 
 Options
@@ -117,12 +139,12 @@ The name of the button to confirm the time change. Only displayed on mobile phon
 *default: 'OK'*
 
 - **maximum**  
-(NOT IMPLEMENTED YET) You may define the maximum duration/time.  
-*default: null*
+With this option you can define the maximum duration/time. Syntax: hh:mm, i.e. 8:30, 12:00, 24:00, 100:00, ...
+*default: '23:59'*
 
 - **minimum**  
-(NOT IMPLEMENTED YET) You may define the minimum duration/time.  
-*default: null*
+With this option you can define the minimum duration/time. Syntax: hh:mm, i.e. 06:00, -10:00, -15:45, ...
+*default: '-23:59'*
 
 - **modeSwitchSpeed**  
 The speed in milliseconds of the switch animation when changing between hour and minute selection.  
@@ -132,8 +154,12 @@ The speed in milliseconds of the switch animation when changing between hour and
 If true, the clock time picker is not shown on Desktop version.  
 *default: false*
 
+- **onAdjust**  
+Called when the time value is been adjusting. Compared to onChange this function is called each time when the value is changing, also while dragging the time selector...  
+*default: function(newValue, oldValue) {}*
+
 - **onChange**  
-Called when the time value has been changed.  
+Called when the time value has been changed. This function is called when the input field is loosing its focus.  
 *default: function(newValue, oldValue) {}*
 
 - **onClose**  
@@ -156,6 +182,10 @@ The width of the popup in the Desktop version in pixels. On the mobile phone the
 When setting the precision to i.e. 5, user may only choose time in 5 minutes steps (8:00, 8:05, 8:10, ...). Valid values for precision are: 1, 5, 10, 15, 30, 60.  
 *default: 1*
 
+- **required**  
+If this option is set to true, a user cannot empty the field by hitting delete or backspace.  
+*default: false*
+
 - **separator**  
 The separator separating the hour and the minute parts.  
 *default: :*
@@ -173,6 +203,28 @@ Help
 ----
 
 Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepicker/issues/new).
+
+
+Changelog
+---------
+
+**Version 2.1.0**  
+- Make it possible to dispose an already initialized clockTimePicker element.  
+- Changed the default value for the option ```autosize``` from true to false.  
+- New option ```required``` added: If you don't want the user to empty the input element, you can set this option to true.  
+- New event ```onAddjust``` added: This option is called on each adjustment of the value, including dragging the timeselector.  
+- Sign button +/- implemented in canvas instead of an HTML element to prevent styling issues depending on different global CSS layouts.  
+- Selection of hour and minute part with the mouse improved (now also taking account of input element's padding).  
+- Key handling improved for backspace, delete and minus key.  
+- Arrow keys up and down switched.  
+- Context menu on right click disabled.  
+- Implementation of ```maximum``` and ```minimum``` option.  
+
+**Version 2.0.0**  
+- Event management completeley refactored so that one can use the input's default onchange event.  
+
+**Version 1.x**  
+- No changelog available for the first versions of this jQuery component.  
 
 
 - - -

@@ -7,7 +7,8 @@
   <script type="text/javascript" src="jquery-clock-timepicker.min.js"></script>
   <script type="text/javascript">
     $(document).ready(function() {
-	  $('.standard').clockTimePicker({});
+	  $('.standard').clockTimePicker();
+	  $('.required').clockTimePicker({required:true});
 	  $('.separatorTime').clockTimePicker({separator:'.'});
 	  $('.amPmTime').clockTimePicker({useAmPm:true});
 	  $('.precisionTime5').clockTimePicker({precision:5});
@@ -16,9 +17,10 @@
 	  $('.precisionTime30').clockTimePicker({precision:30});
 	  $('.precisionTime60').clockTimePicker({precision:60});
 	  $('.simpleTime').clockTimePicker({onlyShowClockOnMobile:true});
-	  $('.duration').clockTimePicker({duration:true});
+	  $('.duration').clockTimePicker({duration:true, maximum:'80:00'});
 	  $('.durationNegative').clockTimePicker({duration:true, durationNegative:true});
-	  $('.durationMinMax').clockTimePicker({duration:true, durationMinimum:'1:00', durationMaximum:'5:00'});
+	  $('.durationMinMax').clockTimePicker({duration:true, minimum:'1:00', maximum:'5:00'});
+	  $('.durationNegativeMinMax').clockTimePicker({duration:true, durationNegative:true, minimum:'-5:00', maximum:'5:00', precision:5});
 	});
   </script>
   <style type="text/css">
@@ -32,12 +34,12 @@
 		.example table { width: 100%; }
 		.example td { display: block; text-align: center; }
 	}
-    .time { display:inline-block; font-size:26px; padding:5px; text-align:center; width:81px; margin-top:5px; }
+    .time { display:inline-block; font-size:26px; padding:5px; text-align:center; width:90px; margin-top:5px; }
   </style>
  </head>
  <body>
   <div class="main">
-   <h1>jQuery Clock Time Picker v2.0.0</h1>
+   <h1>jQuery Clock Time Picker v2.1.0</h1>
    <h3>NPM package "jquery-clock-timepicker"</h3>
    <p>A free jQuery Plug-in to select the time with a clock inspired by the Android time picker. This plugin works on Desktop and Mobile phones.</p>
    <p>Install with NPM or download it directly from GitHub:<br /><a href="https://github.com/loebi-ch/jquery-clock-timepicker" target="_blank">https://github.com/loebi-ch/jquery-clock-timepicker</a></p>
@@ -47,7 +49,12 @@
    <p class="example">
     <strong>Standard time picker</strong><br />
 	<i>(no settings specified)</i><br />
-    <input class="time standard" type="text" value="14:30" onchange="console.log('Time changed to: ' + this.value)" />
+    <input class="time standard" type="text" value="10:15" onchange="console.log('Time changed to: ' + this.value)" />
+   </p>
+   <p class="example">
+    <strong>Required time picker</strong><br />
+	<i>(no settings specified)</i><br />
+    <input class="time required" type="text" value="08:45" />
    </p>
    <p class="example">
     <strong>Time picker with different separator</strong><br />
@@ -65,19 +72,19 @@
 	 <tr>
 	  <td>
 	   <i>{ precision: 5 }</i><br />
-       <input class="time precisionTime5" type="text" value="6:00" />
+       <input class="time precisionTime5" type="text" value="06:00" />
 	  </td>
 	  <td>
 	   <i>{ precision: 10 }</i><br />
-       <input class="time precisionTime10" type="text" value="7:10" />
+       <input class="time precisionTime10" type="text" value="07:10" />
 	  </td>
 	  <td>
 	   <i>{ precision: 15 }</i><br />
-       <input class="time precisionTime15" type="text" value="8:15" />
+       <input class="time precisionTime15" type="text" value="08:15" />
 	  </td>
 	  <td>
 	   <i>{ precision: 30 }</i><br />
-       <input class="time precisionTime30" type="text" value="9:30" />
+       <input class="time precisionTime30" type="text" value="09:30" />
 	  </td>
 	  <td>
 	   <i>{ precision: 60 }</i><br />
@@ -93,19 +100,24 @@
    </p>
    <p class="example">
     <strong>Duration picker</strong><br />
-	<i>{ duration: true }</i><br />
-    <input class="time duration" type="text" value="125:00" />
+	<i>{ duration: true, maximum: '80:00' }</i><br />
+    <input class="time duration" type="text" value="48:30" />
    </p>
    <p class="example">
     <strong>Duration picker that allows to select negative durations</strong><br />
 	<i>{ duration: true, durationNegative: true }</i><br />
     <input class="time durationNegative" type="text" value="-1:10" />
    </p>
-   <!--p class="example">
+   <p class="example">
     <strong>Duration picker with minimum and maximum</strong><br />
 	<i>{ duration: true, minimum: '1:00', maximum: '5:00' }</i><br />
     <input class="time durationMinMax" type="text" value="2:30" />
-   </p-->
+   </p>
+   <p class="example">
+    <strong>Negative duration picker with minimum and maximum</strong><br />
+	<i>{ duration: true, durationNegative: true, minimum: '-5:00', maximum: '5:00', precision: 5 }</i><br />
+    <input class="time durationNegativeMinMax" type="text" value="-2:00" />
+   </p>
    <p>
     Find more settings in the README on <a href="https://github.com/loebi-ch/jquery-clock-timepicker/blob/master/README.md" target="_blank">GitHub</a>.<br />
 	If you miss settings, please feel free to submit a <a href="https://github.com/loebi-ch/jquery-clock-timepicker/issues/new" target="_blank">GitHub issue request</a>.
