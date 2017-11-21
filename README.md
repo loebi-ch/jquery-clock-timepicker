@@ -199,14 +199,19 @@ If this is activated the mobile phone vibrates while changing the time.
 *default: true*
 
 
+
 Help
 ----
 
 Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepicker/issues/new).
 
 
+
 Changelog
 ---------
+
+**Version 2.1.1**  
+- Bugfix: Sign button clickable on mobile phone  
 
 **Version 2.1.0**  
 - Make it possible to dispose an already initialized clockTimePicker element.  

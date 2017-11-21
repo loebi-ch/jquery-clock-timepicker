@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.0
+ * Version: 2.1.1
  */
  (function($) {
 	 
@@ -132,6 +132,7 @@
 			var enteredDigits = '';
 			var selectionMode = 'HOUR'; //2 modes: 'HOUR' or 'MINUTE'
 			var isDragging = false;
+			var touchSignButton = false;
 			var hasJustGotFocus = false;
 			var popupWidth = isMobile() ? $(document).width() - 80 : settings.popupWidthOnDesktop;
 			var canvasSize = popupWidth - (isMobile() ? 50 : 20);
@@ -398,7 +399,7 @@
 							if (selectionMode == 'HOUR') selectHourOnInputElement();
 							else selectMinuteOnInputElement();
 							return;
-						}						
+						}
 						if (!processTimeSelection(x, y, true)) {
 							if (settings.precision == 60) {
 								hideTimePicker();
@@ -442,16 +443,35 @@
 						event.preventDefault();
 						var x = event.originalEvent.touches[0].pageX - $(this).offset().left;
 						var y = event.originalEvent.touches[0].pageY - $(this).offset().top;
+						var selectorLength = Math.sqrt(Math.pow(Math.abs(x - clockCenterX), 2) + Math.pow(Math.abs(y - clockCenterY), 2));
+						if (settings.duration && settings.durationNegative && selectorLength <= 20) {
+							touchSignButton = true;
+							var oldVal = inputElement.val();
+							if (oldVal.match(/^-/)) {
+								newVal = oldVal.substring(1);
+							} else {
+								newVal = '-' + oldVal;
+							}
+							if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) newVal = formatTime(settings.minimum);
+							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);
+							inputElement.val(newVal);
+							repaintClock();
+							settings.onAdjust(newVal, oldVal);
+							if (selectionMode == 'HOUR') selectHourOnInputElement();
+							else selectMinuteOnInputElement();
+							return;
+						}
 						processTimeSelection(x, y);
 						isDragging = true;
 					});
 					canvas.on('touchend', function(event) {
 						event.preventDefault();
 						isDragging = false;
-						if (settings.precision != 60) {
+						if (!touchSignButton && settings.precision != 60) {
 							switchToMinuteMode();
 							selectMinuteOnInputElement();
 						}
+						touchSignButton = false;
 					});
 					canvas.on('touchmove', function(event) {
 						event.preventDefault();
