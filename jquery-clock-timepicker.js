@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.1
+ * Version: 2.1.2
  */
  (function($) {
 	 
@@ -395,7 +395,7 @@
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);
 							inputElement.val(newVal);
 							repaintClock();
-							settings.onAdjust(newVal, oldVal);
+							settings.onAdjust.call(element.get(0), newVal, oldVal);
 							if (selectionMode == 'HOUR') selectHourOnInputElement();
 							else selectMinuteOnInputElement();
 							return;
@@ -456,7 +456,7 @@
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);
 							inputElement.val(newVal);
 							repaintClock();
-							settings.onAdjust(newVal, oldVal);
+							settings.onAdjust.call(element.get(0), newVal, oldVal);
 							if (selectionMode == 'HOUR') selectHourOnInputElement();
 							else selectMinuteOnInputElement();
 							return;
@@ -558,7 +558,7 @@
 					repaintClock();
 					if (selectionMode == 'HOUR') selectHourOnInputElement();
 					else selectMinuteOnInputElement();
-					if (newVal != oldVal) settings.onAdjust(newVal, oldVal);
+					if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
 				}
 			}
 			
@@ -619,7 +619,7 @@
 								var oldVal = inputElement.val();
 								if (newVal != oldVal) {
 									if (settings.vibrate) navigator.vibrate(10);
-									settings.onAdjust(newVal, oldVal);
+									settings.onAdjust.call(element.get(0), newVal, oldVal);
 								}
 								inputElement.val(newVal);
 								autosize();
@@ -658,7 +658,7 @@
 							var oldVal = inputElement.val();
 							if (newVal != oldVal) {
 								if (settings.vibrate) navigator.vibrate(10);
-								settings.onAdjust(newVal, oldVal);
+								settings.onAdjust.call(element.get(0), newVal, oldVal);
 							}
 							inputElement.val(newVal);
 						}
@@ -958,7 +958,7 @@
 						popup.css('top', element.outerHeight() + 'px');
 					}
 				}
-				settings.onOpen();
+				settings.onOpen.call(element.get(0));
 			}
 			
 			
@@ -986,10 +986,10 @@
 						evt.eventType = 'click';
 						element.get(0).fireEvent('onchange', evt);
 					}
-					settings.onChange(newValue, oldValue);
+					settings.onChange.call(element.get(0), newValue, oldValue);
 					oldValue = newValue;
 				}
-				settings.onClose();
+				settings.onClose.call(element.get(0));
 			}
 			
 			
@@ -1016,7 +1016,7 @@
 									  .css('opacity', 1)
 									  .css('zIndex', 1);
 				selectionMode = 'HOUR';
-				settings.onModeSwitch(selectionMode);
+				settings.onModeSwitch.call(element.get(0), selectionMode);
 			}
 			
 			
@@ -1036,7 +1036,7 @@
 										.css('zIndex', 1)
 										.animate({opacity: 1, zoom:'100%', left:'0px', top:'0px'});
 				selectionMode = 'MINUTE';
-				settings.onModeSwitch(selectionMode);
+				settings.onModeSwitch.call(element.get(0), selectionMode);
 			}
 			
 			
@@ -1217,12 +1217,12 @@
 						}
 						inputElement.val(newVal);
 						selectHourOnInputElement();
-						if (oldVal != newVal) settings.onAdjust(newVal, oldVal);
+						if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
 					} else {
 						if (m == 0) {
 							if (h == 0 && !settings.required) {
 								inputElement.val('');
-								if (oldVal != '') settings.onAdjust('', oldVal);
+								if (oldVal != '') settings.onAdjust.call(element.get(0), '', oldVal);
 							}
 							switchToHourMode();
 							selectHourOnInputElement();
@@ -1230,7 +1230,7 @@
 							newVal = (negative ? '-' : '') + (h < 10 && !settings.duration ? '0' : '') + h + settings.separator + '00';
 							inputElement.val(newVal);
 							selectMinuteOnInputElement();
-							if (oldVal != newVal) settings.onAdjust(newVal, oldVal);
+							if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
 						}
 					}
 					autosize();
@@ -1322,7 +1322,7 @@
 					}
 					if (isMinMaxFullfilled) {
 						inputElement.val(newVal);
-						if (newVal != oldVal) settings.onAdjust(newVal, oldVal);
+						if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
 						autosize();
 						repaintClock();
 						if (selectionMode == 'HOUR') selectHourOnInputElement();
@@ -1529,7 +1529,7 @@
 							}
 						}
 					}
-					if (newVal != oldVal) settings.onAdjust(newVal, oldVal);
+					if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
 					autosize();
 				}
 				repaintClock();
