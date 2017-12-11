@@ -210,6 +210,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.1.3**  
+- Support for keypad with num lock.  
+
 **Version 2.1.2**  
 - Call event functions with call() using the element as context so that you can use $(this) inside the callback function to access the element.  
 
