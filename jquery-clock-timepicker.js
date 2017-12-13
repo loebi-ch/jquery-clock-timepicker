@@ -1,11 +1,11 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.3
+ * Version: 2.1.4
  */
  (function($) {
 	 
-	$.fn.clockTimePicker = function(options) {
+	$.fn.clockTimePicker = function(options, _value) {
 		
 		/************************************************************************************************
 		  DEFAULT SETTINGS (CAN BE OVERRIDDEN WITH THE OPTIONS ARGUMENT)
@@ -113,9 +113,18 @@
 			if (!('vibrate' in navigator)) settings.vibrate = false;
 			
 			if (typeof options == 'string') {
-				options = options.toLowerCase();
-				if (options == 'dispose') disposeTimePicker($(this));
-				else console.log('%c[jquery-clock-timepicker] Invalid option passed to clockTimePicker: ' + options, 'color:red');
+				if (!$(this).parent().hasClass('clock-timepicker')) console.log('%c[jquery-clock-timepicker] Before calling a function, please initialize the ClockTimePicker!', 'color:red');
+				else {
+					options = options.toLowerCase();
+					if (options == 'dispose') disposeTimePicker($(this));
+					else if (options == 'value') {
+						$(this).val(formatTime(_value));
+						var mobileInput = $(this).parent().find('.clock-timepicker-mobile-input');
+						if (mobileInput.length > 0) mobileInput.val(formatTime(_value));
+						$(this).parent().find('canvas:first').trigger('keydown');
+					}
+					else console.log('%c[jquery-clock-timepicker] Invalid option passed to clockTimePicker: ' + options, 'color:red');
+				}
 				return;
 			} else {
 				if ($(this).parent().hasClass('clock-timepicker')) disposeTimePicker($(this));
@@ -266,10 +275,10 @@
 			 ************************************************************************************************/			
 			var inputElement = element;
 			if (isMobile()) {
-				inputElement = $('<input type="text">');
+				inputElement = $('<input class="clock-timepicker-mobile-input" type="text">');
 				inputElement.css('display', 'inline-block')
 							.css('width', '100%')
-							.css('border', '0px !important')
+							.css('border', '0px')
 							.css('outline', '0px')
 							.css('fontSize', isMobile() ? '40px' : '20px')
 							.css('padding', '10px 0px')
@@ -305,7 +314,7 @@
 						.css('height', canvasSize + 'px')
 						.css('margin', '10px ' + (isMobile() ? 25 : 10) + 'px');
 			popup.append(canvasHolder);
-			var clockHourCanvas = $('<canvas>');
+			var clockHourCanvas = $('<canvas class="clock-timepicker-hour-canvas">');
 			clockHourCanvas.css('cursor', 'default')
 						   .css('position', 'absolute')
 						   .css('top', '0px')
@@ -314,7 +323,7 @@
 			clockHourCanvas.attr('height', canvasSize);
 			registerDraggingEventsOnCanvas(clockHourCanvas);
 			canvasHolder.append(clockHourCanvas);
-			var clockMinuteCanvas = $('<canvas>');
+			var clockMinuteCanvas = $('<canvas class="clock-timepicker-minute-canvas">');
 			clockMinuteCanvas.css('cursor', 'default')
 							 .css('position', 'absolute')
 							 .css('top', '0px')
@@ -482,6 +491,14 @@
 						}
 					});
 				}
+				
+				canvas.on('keydown', function(event) {
+					event.preventDefault();
+					processTimeSelection();
+					switchToHourMode();
+					selectHourOnInputElement();
+					oldValue = inputElement.val();
+				});
 			}
 			
 			

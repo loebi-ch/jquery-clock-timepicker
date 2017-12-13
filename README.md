@@ -46,12 +46,18 @@ $('.your-time-field').clockTimePicker({
 });
 ```
 
-If you want to set new options during runtime (after an input element already has been intialized), just call the function again with all desired options.
+If you want to set new options at runtime (after an input element already has been intialized), just call the function again with all desired options.
 
 If you want to dispose/destroy an initialized clock time picker element, please use the following code:
 
 ```javascript
 $('.your-time-field').clockTimePicker('dispose');
+```
+
+If you want to change the value programmatically at runtime on an already initialized clock time picker element, use the following code:
+
+```javascript
+$('.your-time-field').clockTimePicker('value', '08:00');
 ```
 
 
@@ -210,6 +216,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.1.4**  
+- Added function to set value on an already initialized clock time picker element at runtime.  
+
 **Version 2.1.3**  
 - Support for keypad with num lock.  
 
@@ -220,7 +229,7 @@ Changelog
 - Bugfix: Sign button clickable on mobile phone  
 
 **Version 2.1.0**  
-- Make it possible to dispose an already initialized clockTimePicker element.  
+- Make it possible to dispose an already initialized clock time picker element.  
 - Changed the default value for the option ```autosize``` from true to false.  
 - New option ```required``` added: If you don't want the user to empty the input element, you can set this option to true.  
 - New event ```onAddjust``` added: This option is called on each adjustment of the value, including dragging the timeselector.  
