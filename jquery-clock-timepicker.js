@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.4
+ * Version: 2.1.5
  */
  (function($) {
 	 
@@ -1297,7 +1297,7 @@
 					if (negative) h = -h;
 					var m = RegExp.$4 ? parseInt(RegExp.$4) : 0;
 					if (settings.duration && settings.durationNegative && (event.keyCode == 107 || event.keyCode == 109 || event.keyCode == 189 || (event.shiftKey && event.keyCode == 49))) {
-						if (event.keyCode == 109 || event.keyCode == 189) {
+						if (event.keyCode == 107 || event.keyCode == 49) {
 							if (h > 0) h = -h;
 							negative = true;
 						}
@@ -1308,7 +1308,7 @@
 						enteredDigits = '';
 					}
 					else if (selectionMode == 'HOUR') {
-						if (event.keyCode == 38 || event.keyCode == 109 || event.keyCode == 189) {
+						if (event.keyCode == 38 || event.keyCode == 107 || event.keyCode == 49) {
 							if (settings.duration && settings.durationNegative && h == 0 && negative) negative = false;
 							else h += 1;
 						}
@@ -1323,7 +1323,7 @@
 						if (h == 24 && !settings.duration) h = 0;
 					}
 					else {
-						if (event.keyCode == 38 || event.keyCode == 109 || event.keyCode == 189) m -= settings.precision;
+						if (event.keyCode == 38 || event.keyCode == 107 || event.keyCode == 49) m -= settings.precision;
 						else m += settings.precision;
 						if (m < 0) m = 60 + m;
 						if (m >= 60) m = m - 60;
@@ -1395,11 +1395,17 @@
 								}
 							}							
 							inputElement.val(newVal);
+							
 							var switchToMinutes = (!settings.duration && parseInt(event.key) > 2) || (settings.maximum && !isTimeSmallerOrEquals((isNegative ? '-' : '') + parseInt(event.key) + '0:00', settings.maximum)) || (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (isNegative ? '-' : '') + parseInt(event.key) + '0:00'));
 							if (switchToMinutes) {
 								enteredDigits = '';
-								switchToMinuteMode();
-								selectMinuteOnInputElement();
+								if (settings.precision == 60) {
+									hideTimePicker();
+									blurAll();
+								} else {
+									switchToMinuteMode();
+									selectMinuteOnInputElement();
+								}
 							} else {
 								selectHourOnInputElement();
 							}
@@ -1536,12 +1542,18 @@
 										switchToMinutes = true;
 									}
 								}
-								inputElement.val(newVal);
-								if (!switchToMinutes) selectHourOnInputElement();
-								else {
-									switchToMinuteMode();
-									selectMinuteOnInputElement();
-									enteredDigits = '';
+								inputElement.val(newVal);								
+								if (!switchToMinutes) {
+									selectHourOnInputElement();
+								} else {
+									if (settings.precision == 60) {
+										hideTimePicker();
+										blurAll();
+									} else {
+										switchToMinuteMode();
+										selectMinuteOnInputElement();
+										enteredDigits = '';
+									}
 								}
 							}
 						}
