@@ -216,6 +216,10 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.1.6**  
+- Bugfix when entering time/duration with keyboard on an empty input field.  
+- Bugfix for keys "+" and "-" in 2.1.5 leaded to another bug with negative duration fields. Corrected in this version.  
+
 **Version 2.1.5**  
 - Precision 60 bugfix: In some cases the time picker switched to minute mode although precision 60 was set.  
 - Bugfix for keys "+" and "-" to adjust value in correct direction: + = plus, - = minus.  

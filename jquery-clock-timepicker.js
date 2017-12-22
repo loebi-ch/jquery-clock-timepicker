@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.5
+ * Version: 2.1.6
  */
  (function($) {
 	 
@@ -1101,9 +1101,10 @@
 					if (settings.required) return settings.duration ? '0:00' : '00:00';
 					else return time;
 				}
-				if ((new RegExp('^(-)?([0-9]+)(.([0-9]{1,2}))?$', 'i')).test(time)) {
+				if ((new RegExp('^(-)?([0-9]+)(.([0-9]{1,2})?)?$', 'i')).test(time)) {
 					var hour = parseInt(RegExp.$2);
 					var min = parseInt(RegExp.$4);
+					if (!min) min = 0;
 					var negative = settings.duration && settings.durationNegative && RegExp.$1 == '-' ? true : false;
 					if (hour >= 24 && !settings.duration) hour = hour % 24;
 					if (min >= 60) min = min % 60;
@@ -1298,12 +1299,12 @@
 					var m = RegExp.$4 ? parseInt(RegExp.$4) : 0;
 					if (settings.duration && settings.durationNegative && (event.keyCode == 107 || event.keyCode == 109 || event.keyCode == 189 || (event.shiftKey && event.keyCode == 49))) {
 						if (event.keyCode == 107 || event.keyCode == 49) {
+							if (h < 0) h = -h;
+							negative = false;
+						}
+						else {							
 							if (h > 0) h = -h;
 							negative = true;
-						}
-						else if (h <= 0) {
-							h = -h;
-							negative = false;
 						}
 						enteredDigits = '';
 					}
@@ -1323,7 +1324,7 @@
 						if (h == 24 && !settings.duration) h = 0;
 					}
 					else {
-						if (event.keyCode == 38 || event.keyCode == 107 || event.keyCode == 49) m -= settings.precision;
+						if (event.keyCode == 38 || event.keyCode == 109 || event.keyCode == 189) m -= settings.precision;
 						else m += settings.precision;
 						if (m < 0) m = 60 + m;
 						if (m >= 60) m = m - 60;
@@ -1369,7 +1370,7 @@
 						enteredDigits = event.key;
 						//First digit in hour mode
 						if (selectionMode == 'HOUR') {
-							newVal = (isNegative ? '-' : '') + (!settings.duration ? '0' : '') + event.key + settings.separator + minPart;							
+							newVal = formatTime((isNegative ? '-' : '') + (!settings.duration ? '0' : '') + event.key + settings.separator + minPart);
 							if (settings.maximum) {
 								if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
 									newVal = settings.maximum.substring(0, settings.maximum.indexOf(':')) + settings.separator + minPart;
