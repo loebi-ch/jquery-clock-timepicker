@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.6
+ * Version: 2.1.7
  */
  (function($) {
 	 
@@ -517,8 +517,15 @@
 					selectHourOnInputElement();
 					return;
 				}
-				var innerWidth = inputElement.innerWidth() - parseInt(inputElement.css('padding-left')) - parseInt(inputElement.css('padding-right'));
-				var inputElementCenter = parseInt(innerWidth / 2 + parseInt(inputElement.css('padding-left')));
+				var inputElementCenter = parseInt((inputElement.innerWidth() - parseInt(inputElement.css('padding-left')) - parseInt(inputElement.css('padding-right'))) / 2 + parseInt(inputElement.css('padding-left')));				
+				tempAutosizeElement.html(inputElement.val());
+				var elementWidth = inputElement.innerWidth() - parseInt(inputElement.css('padding-left')) - parseInt(inputElement.css('padding-right'));
+				var textWidth = parseInt(tempAutosizeElement.innerWidth()) - parseInt(tempAutosizeElement.css('padding-left')) - parseInt(tempAutosizeElement.css('padding-right'));
+				if (inputElement.css('text-align') == 'left') {
+					inputElementCenter = parseInt(textWidth / 2 + parseInt(tempAutosizeElement.css('padding-left')));
+				} else if (inputElement.css('text-align') == 'right') {				
+					inputElementCenter = elementWidth - textWidth + parseInt(textWidth / 2 + parseInt(tempAutosizeElement.css('padding-left')));
+				}				
 				if (event.offsetX >= inputElementCenter) {
 					if (selectionMode == 'HOUR' && settings.vibrate) navigator.vibrate(10);
 					switchToMinuteMode();
