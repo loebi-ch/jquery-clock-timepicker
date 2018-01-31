@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.7
+ * Version: 2.1.8
  */
  (function($) {
 	 
@@ -971,15 +971,15 @@
 					if (freeBottomSpace < popup.outerHeight() && element.offset().top > popup.outerHeight()) {
 						if (freeTopSpace < popup.outerHeight()) {
 							if (freeTopSpace > freeBottomSpace + element.outerHeight()) {
-								popup.css('top', -popup.outerHeight() + 'px');
+								popup.css('top', -popup.outerHeight() + parseInt(element.css('marginTop')) + 'px');
 							} else {
-								popup.css('top', element.outerHeight() + 'px');
+								popup.css('top', parseInt(element.css('marginTop')) + element.outerHeight() + 'px');
 							}
 						} else {
-							popup.css('top', -popup.outerHeight() + 'px');
+							popup.css('top', -popup.outerHeight() + parseInt(element.css('marginTop')) + 'px');
 						}
 					} else {
-						popup.css('top', element.outerHeight() + 'px');
+						popup.css('top', parseInt(element.css('marginTop')) + element.outerHeight() + 'px');
 					}
 				}
 				settings.onOpen.call(element.get(0));

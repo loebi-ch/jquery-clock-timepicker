@@ -216,8 +216,11 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.1.8**  
+- Fixed an issue with overlapping popup when input element has a top margin.  
+
 **Version 2.1.7**  
-- Issue #9 fixed. Better approach to select hour/minute part with mouse click.   
+- Issue #9 fixed. Better approach to select hour/minute part with mouse click.  
 
 **Version 2.1.6**  
 - Bugfix when entering time/duration with keyboard on an empty input field.  
