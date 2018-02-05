@@ -216,6 +216,14 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.1.9**  
+- Directly select minute when clicking inside the minute part.  
+- Bluring issues fixed.  
+- Issue #9 perfectionated to select hour/minute part with mouse click.  
+- Autosizing adjusted so that jquery-clock-timepicker works together with sortablejs.  
+- Hide time picker when deleting content with delete or backspace.  
+- Show 00:00 when focusing an empty timepicker.  
+
 **Version 2.1.8**  
 - Fixed an issue with overlapping popup when input element has a top margin.  
 

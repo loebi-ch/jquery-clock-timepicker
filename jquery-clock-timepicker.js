@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.8
+ * Version: 2.1.9
  */
  (function($) {
 	 
@@ -137,12 +137,12 @@
 			 ************************************************************************************************/
 			var element = $(this);
 			element.val(formatTime(element.val()));
+			if (isMobile()) element.prop('readonly', true);
 			var oldValue = element.val();
 			var enteredDigits = '';
 			var selectionMode = 'HOUR'; //2 modes: 'HOUR' or 'MINUTE'
 			var isDragging = false;
 			var touchSignButton = false;
-			var hasJustGotFocus = false;
 			var popupWidth = isMobile() ? $(document).width() - 80 : settings.popupWidthOnDesktop;
 			var canvasSize = popupWidth - (isMobile() ? 50 : 20);
 			var clockRadius = parseInt(canvasSize / 2);
@@ -164,20 +164,17 @@
 			  TEMPORARY AUTOSIZE ELEMENT
 			 ************************************************************************************************/
 			var tempAutosizeElement = $('<div class="clock-timepicker-autosize">');
-			tempAutosizeElement.css('position', 'fixed')
-							   .css('top', '-500px')
-							   .css('left', '-500px')
-							   .css('display', 'inline-block')
+			tempAutosizeElement.css('position', 'absolute')
+							   .css('opacity', 0)
+							   .css('display', 'none')
+							   .css('top', parseInt(element.css('margin-top')) + 'px')
+							   .css('left', '0px')
 							   .css('font-size', element.css('font-size'))
 							   .css('font-family', element.css('font-family'))
 							   .css('font-weight', element.css('font-weight'))
-							   .css('border-left', element.css('border-left'))
-							   .css('border-right', element.css('border-right'))
-							   .css('padding-left', element.css('padding-left'))
-							   .css('padding-right', element.css('padding-right'));
-			tempAutosizeElement.html('22:22');
+							   .css('line-height', element.css('line-height'));
 			element.parent().append(tempAutosizeElement);
-			tempAutosizeElement.css('min-width', tempAutosizeElement.width() + 'px');
+			element.css('min-width', element.outerWidth());
 			autosize();
 			
 			
@@ -412,19 +409,16 @@
 						if (!processTimeSelection(x, y, true)) {
 							if (settings.precision == 60) {
 								hideTimePicker();
-								blurAll();
 							} else if (selectionMode == 'HOUR') {
 								switchToMinuteMode();
 								selectMinuteOnInputElement();
 							} else {
 								hideTimePicker();
-								blurAll();
 							}
 							return false;
 						}
 						if (selectionMode == 'MINUTE' || settings.precision == 60) {
 							hideTimePicker();
-							blurAll();
 						}
 						else {
 							switchToMinuteMode();
@@ -506,36 +500,51 @@
 			/************************************************************************************************
 			  PROCESSES LEFT OR RIGHT MOUSE CLICK AND SINGLE TAP ON MOBILE PHONES
 			 ************************************************************************************************/	
-			function processClick(event) {
+			function processClick(event) {				
+				var popupVisible = popup.css('display') != 'none';
 				if (!inputElement.val()) {
-					switchToHourMode();
-					showTimePicker();
-					return;
-				}
-				if (hasJustGotFocus) return;				
-				if (settings.precision == 60) {
+					inputElement.val(formatTime('00:00'));
+					switchToHourMode(!popupVisible);
 					selectHourOnInputElement();
-					return;
 				}
-				var inputElementCenter = parseInt((inputElement.innerWidth() - parseInt(inputElement.css('padding-left')) - parseInt(inputElement.css('padding-right'))) / 2 + parseInt(inputElement.css('padding-left')));				
-				tempAutosizeElement.html(inputElement.val());
-				var elementWidth = inputElement.innerWidth() - parseInt(inputElement.css('padding-left')) - parseInt(inputElement.css('padding-right'));
-				var textWidth = parseInt(tempAutosizeElement.innerWidth()) - parseInt(tempAutosizeElement.css('padding-left')) - parseInt(tempAutosizeElement.css('padding-right'));
-				if (inputElement.css('text-align') == 'left') {
-					inputElementCenter = parseInt(textWidth / 2 + parseInt(tempAutosizeElement.css('padding-left')));
-				} else if (inputElement.css('text-align') == 'right') {				
-					inputElementCenter = elementWidth - textWidth + parseInt(textWidth / 2 + parseInt(tempAutosizeElement.css('padding-left')));
-				}				
-				if (event.offsetX >= inputElementCenter) {
-					if (selectionMode == 'HOUR' && settings.vibrate) navigator.vibrate(10);
-					switchToMinuteMode();
-					selectMinuteOnInputElement();
+				else if (settings.precision == 60) {
+					switchToHourMode(!popupVisible);
+					selectHourOnInputElement();
 				}
 				else {
-					if (selectionMode == 'MINUTE' && settings.vibrate) navigator.vibrate(10);
-					switchToHourMode();
-					selectHourOnInputElement();
+					var elementWidth = inputElement.innerWidth();
+					var elementPaddingLeft = parseFloat(inputElement.css('padding-left'));
+					var elementPaddingRight = parseFloat(inputElement.css('padding-right'));				
+					var elementInnerWidth = elementWidth - elementPaddingLeft - elementPaddingRight;
+					tempAutosizeElement.css('display', 'inline-block');
+					tempAutosizeElement.html(inputElement.val());
+					var textWidth = tempAutosizeElement.innerWidth();				
+					tempAutosizeElement.html(settings.separator);
+					var textCenter = tempAutosizeElement.innerWidth() / 2;
+					tempAutosizeElement.html(inputElement.val().replace(new RegExp(settings.separator + '[0-9]+$'), ''));
+					textCenter += tempAutosizeElement.innerWidth();
+					tempAutosizeElement.css('display', 'none');				
+					var inputElementCenter = elementWidth / 2;
+					if (inputElement.css('text-align') == 'left') {
+						inputElementCenter = Math.floor(elementPaddingLeft + textCenter);
+					}
+					else if (inputElement.css('text-align') == 'center') {
+						inputElementCenter = Math.floor(elementPaddingLeft + ((elementInnerWidth - textWidth) / 2) + textCenter);
+					}
+					else if (inputElement.css('text-align') == 'right') {
+						inputElementCenter = Math.floor(elementPaddingLeft + elementInnerWidth - (textWidth - textCenter));
+					}
+					if (event.offsetX >= inputElementCenter - 2) {
+						if (selectionMode == 'HOUR' && settings.vibrate) navigator.vibrate(10);
+						switchToMinuteMode(!popupVisible);
+						selectMinuteOnInputElement();
+					} else {
+						if (selectionMode == 'MINUTE' && settings.vibrate) navigator.vibrate(10);
+						switchToHourMode(!popupVisible);
+						selectHourOnInputElement();
+					}
 				}
+				if (!popupVisible) showTimePicker();
 			}
 			
 			
@@ -950,11 +959,11 @@
 			  SHOWS THE TIME PICKER
 			 ************************************************************************************************/	
 			function showTimePicker() {
-				inputElement.val(element.val());				
-				repaintClockHourCanvas();
-				switchToHourMode(true);
+				if (!element.val()) inputElement.val(formatTime('00:00'));
+				else inputElement.val(element.val());
 				if (!isMobile() && settings.onlyShowClockOnMobile) popup.css('visibility', 'hidden');
 				popup.css('display', 'block');
+				repaintClock();
 				if (isMobile()) {
 					background.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
 				} else {
@@ -990,7 +999,7 @@
 			/************************************************************************************************
 			  HIDES THE TIME PICKER
 			 ************************************************************************************************/
-			function hideTimePicker() {
+			function hideTimePicker() {				
 				var newValue = formatTime(element.val());
 				enteredDigits = '';
 				popup.css('display', 'none');
@@ -999,7 +1008,11 @@
 				} else {
 					element.val(newValue);
 				}
-				if (oldValue != newValue) {
+				blurAll();
+				if (!oldValue && newValue.match(new RegExp('^0+' + settings.separator + '00$'))) {
+					inputElement.val('');
+				}
+				else if (oldValue != newValue) {
 					if ('createEvent' in document) {
 						var evt = document.createEvent('HTMLEvents');
 						evt.initEvent('change', true, false);
@@ -1048,7 +1061,7 @@
 			/************************************************************************************************
 			  SWITCH FROM HOUR SELECTION MODE TO MINUTE SELECTION MODE
 			 ************************************************************************************************/
-			function switchToMinuteMode() {
+			function switchToMinuteMode(surpressAnimation) {
 				if (selectionMode == 'MINUTE') return;
 				enteredDigits = '';
 				repaintClockMinuteCanvas();
@@ -1057,8 +1070,16 @@
 										.css('left', '10%')
 										.css('top', '10%')										
 										.css('opacity', 0)
-										.css('zIndex', 1)
-										.animate({opacity: 1, zoom:'100%', left:'0px', top:'0px'});
+										.css('zIndex', 1);
+				if (surpressAnimation) {
+					clockMinuteCanvas.css('opacity', 1)
+									 .css('zoom', '100%')
+									 .css('left', '0px')
+									 .css('top', '0px');
+				}
+				else {
+					clockMinuteCanvas.animate({opacity: 1, zoom:'100%', left:'0px', top:'0px'});
+				}
 				selectionMode = 'MINUTE';
 				settings.onModeSwitch.call(element.get(0), selectionMode);
 			}
@@ -1093,9 +1114,11 @@
 			  AUTOSIZE INPUT ELEMENT
 			 ************************************************************************************************/
 			function autosize() {
-				if (!settings.autosize) return;
+				if (!settings.autosize || isMobile()) return;
 				tempAutosizeElement.html(element.val());
-				element.css('width', (tempAutosizeElement.outerWidth() + 2) + 'px');
+				tempAutosizeElement.css('display', 'inline-block');
+				element.css('width', tempAutosizeElement.outerWidth() + 8 + parseInt(element.css('padding-left')) + parseInt(element.css('padding-right')) + 'px');
+				tempAutosizeElement.css('display', 'none');
 			}
 			
 			
@@ -1179,13 +1202,14 @@
 			
 			
 			function onInputElementFocus(event) {
-				if (popup.css('display') == 'none') {
-					hasJustGotFocus = true;
-					setTimeout(function() {
-						hasJustGotFocus = false;
-					}, 300);
+				if (isMobile()) {
 					showTimePicker();
+					switchToHourMode(true);
 					selectHourOnInputElement();
+				} else {
+					setTimeout(function() {
+						if (popup.css('display') == 'none') onInputElementMouseDown(event);
+					}, 50);
 				}
 			}
 			
@@ -1198,7 +1222,6 @@
 			
 			
 			function onInputElementMouseDown(event) {
-				inputElement.trigger('focus');
 				processClick(event);
 				event.stopImmediatePropagation();
 				event.stopPropagation();
@@ -1214,14 +1237,12 @@
 				}
 				//ENTER
 				else if (event.keyCode == 13) {
-					hideTimePicker();					
-					blurAll();
+					hideTimePicker();
 				}
 				//ESC
 				else if (event.keyCode == 27) {
 					inputElement.val(oldValue);
 					hideTimePicker();
-					blurAll();
 				}
 				//BACKSPACE OR DELETE
 				else if (event.keyCode == 8 || event.keyCode == 46) {
@@ -1236,21 +1257,27 @@
 					var m = RegExp.$4 ? parseInt(RegExp.$4) : 0;
 					if (selectionMode == 'HOUR') {
 						if (h == 0) {
-							newVal = settings.required ? (!settings.duration ? '0' : '') +'0' + settings.separator + '00' : '';
+							newVal = settings.required ? (!settings.duration ? '0' : '') +'0' + settings.separator + '00' : '';							
 						} else {
 							newVal = (!settings.duration ? '0' : '') + '0' + settings.separator + (m < 10 ? '0' : '') + m;
 						}
 						inputElement.val(newVal);
-						selectHourOnInputElement();
+						if (!newVal) {
+							hideTimePicker();
+						} else {
+							selectHourOnInputElement();
+						}
 						if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
 					} else {
 						if (m == 0) {
 							if (h == 0 && !settings.required) {
 								inputElement.val('');
 								if (oldVal != '') settings.onAdjust.call(element.get(0), '', oldVal);
+								hideTimePicker();
+							} else {
+								switchToHourMode();
+								selectHourOnInputElement();
 							}
-							switchToHourMode();
-							selectHourOnInputElement();
 						} else {
 							newVal = (negative ? '-' : '') + (h < 10 && !settings.duration ? '0' : '') + h + settings.separator + '00';
 							inputElement.val(newVal);
@@ -1409,7 +1436,6 @@
 								enteredDigits = '';
 								if (settings.precision == 60) {
 									hideTimePicker();
-									blurAll();
 								} else {
 									switchToMinuteMode();
 									selectMinuteOnInputElement();
@@ -1435,7 +1461,6 @@
 								else {
 									inputElement.val(newVal);
 									hideTimePicker();
-									blurAll();
 								}
 							} else {
 								newVal = formatTime(hourPart + settings.separator + event.key + '0');
@@ -1466,7 +1491,6 @@
 									inputElement.val(newVal);
 									if (settings.precision == 60) {
 										hideTimePicker();
-										blurAll();
 									} else {
 										switchToMinuteMode();
 										selectMinuteOnInputElement();
@@ -1483,7 +1507,6 @@
 									inputElement.val(newVal);
 									if (settings.precision == 60) {
 										hideTimePicker();
-										blurAll();
 									} else {
 										switchToMinuteMode();
 										selectMinuteOnInputElement();
@@ -1496,7 +1519,6 @@
 								newVal = hourPart + settings.separator + enteredDigits + event.key;
 								inputElement.val(newVal);
 								hideTimePicker();
-								blurAll();
 							}
 						} else {
 							
@@ -1518,7 +1540,6 @@
 								else {
 									inputElement.val(newVal);
 									hideTimePicker();
-									blurAll();
 								}
 							}
 							//Second digit in hour mode (for duration)
@@ -1556,7 +1577,6 @@
 								} else {
 									if (settings.precision == 60) {
 										hideTimePicker();
-										blurAll();
 									} else {
 										switchToMinuteMode();
 										selectMinuteOnInputElement();
