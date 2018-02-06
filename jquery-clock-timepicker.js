@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.9
+ * Version: 2.1.10
  */
  (function($) {
 	 
@@ -364,6 +364,7 @@
 			  BLUR ALL
 			 ************************************************************************************************/
 			function blurAll() {
+				if (!$(document.activeElement).parents('.clock-timepicker').length) return;
 				var tmp = document.createElement("input");
 				element.parent().get(0).appendChild(tmp);
 				tmp.focus();

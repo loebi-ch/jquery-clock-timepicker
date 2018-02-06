@@ -216,6 +216,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.1.10**  
+- Bluring issues fixed.  
+
 **Version 2.1.9**  
 - Directly select minute when clicking inside the minute part.  
 - Bluring issues fixed.  
