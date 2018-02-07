@@ -216,6 +216,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.2.0**  
+- Issue #7 fixed. Now this plugin works in both portrait and landscape mode on the mobile phone.  
+
 **Version 2.1.10**  
 - Bluring issues fixed.  
 

@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.1.10
+ * Version: 2.2.0
  */
  (function($) {
 	 
@@ -226,12 +226,20 @@
 				 .css('backgroundColor', settings.colors.popupBackgroundColor)
 				 .css('box-shadow', '0 4px 20px 0px rgba(0, 0, 0, 0.14)')
 				 .css('border-radius', '5px')
+				 .css('overflow', 'hidden')
 				 .css('user-select', 'none');
 			popup.on('contextmenu', function() { return false; });
 			if (isMobile()) {
 				popup.css('position', 'fixed')
 					 .css('left', '40px')
 					 .css('top', '40px');
+				
+				window.addEventListener("orientationchange", function() {
+					setTimeout(function() {
+						adjustMobilePopupDimensionAndPosition();
+						repaintClock();
+					}, 500);
+				});
 				
 				function onPopupTouchMove(event) {
 					event.preventDefault();
@@ -955,6 +963,55 @@
 			}
 			
 			
+			/************************************************************************************************
+			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
+			 ************************************************************************************************/	
+			function adjustMobilePopupDimensionAndPosition() {
+
+				var popupHeight;
+				
+				//Landscape mode
+				if (window.innerHeight < 400) {
+					popupWidth = window.innerHeight - 60;					
+					popup.css('width', popupWidth + 200 + 'px');
+					inputElement.css('position', 'absolute')
+								.css('left', '0px')
+								.css('top', '0px')
+								.css('width', '200px')
+								.css('height', popupWidth + 20 + 'px');
+					canvasHolder.css('margin', '10px 25px 0px 230px');
+					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom'));
+				}
+				//Normal mode (enough space for normal popup)
+				else {
+					popupWidth = window.innerWidth - 80;
+					if (popupWidth > 300) popupWidth = 300;
+					popup.css('width', popupWidth + 'px');
+					inputElement.css('position', 'static')
+								.css('width', '100%')
+								.css('height', 'auto');
+					canvasHolder.css('margin', '10px 25px 10px 25px');
+					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
+				}
+				
+				//Align popup in the middle of the screen				
+				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
+				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');				
+				
+				canvasSize = popupWidth - 50;
+				clockRadius = parseInt(canvasSize / 2);
+				clockCenterX = parseInt(canvasSize / 2);
+				clockCenterY = parseInt(canvasSize / 2);
+				clockOuterRadius = clockRadius - 16;
+				clockInnerRadius = clockOuterRadius - 29;
+				canvasHolder.css('width', canvasSize + 'px');
+				canvasHolder.css('height', canvasSize + 'px');
+				clockHourCanvas.attr('width', canvasSize);
+				clockHourCanvas.attr('height', canvasSize);
+				clockMinuteCanvas.attr('width', canvasSize);
+				clockMinuteCanvas.attr('height', canvasSize);				
+			}
+			
 			
 			/************************************************************************************************
 			  SHOWS THE TIME PICKER
@@ -963,6 +1020,7 @@
 				if (!element.val()) inputElement.val(formatTime('00:00'));
 				else inputElement.val(element.val());
 				if (!isMobile() && settings.onlyShowClockOnMobile) popup.css('visibility', 'hidden');
+				if (isMobile()) adjustMobilePopupDimensionAndPosition();
 				popup.css('display', 'block');
 				repaintClock();
 				if (isMobile()) {
