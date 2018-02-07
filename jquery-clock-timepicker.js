@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.2.0
+ * Version: 2.2.1
  */
  (function($) {
 	 
@@ -55,6 +55,13 @@
 			useAmPm: false, //NOT YET IMPLEMENTED
 			vibrate: true
 		}, typeof options == 'object' ? options : {});
+		
+		settings.precision = parseInt(settings.precision);
+		settings.modeSwitchSpeed = parseInt(settings.modeSwitchSpeed);
+		settings.popupWidthOnDesktop = parseInt(settings.popupWidthOnDesktop);
+		settings.fonts.clockOuterCircleFontSize = parseInt(settings.fonts.clockOuterCircleFontSize);
+		settings.fonts.clockInnerCircleFontSize = parseInt(settings.fonts.clockInnerCircleFontSize);
+		settings.fonts.buttonFontSize = parseInt(settings.fonts.buttonFontSize);
 		
 		if (settings.precision != 1 && settings.precision != 5 && settings.precision != 10 && settings.precision != 15 && settings.precision != 30 && settings.precision != 60) {
 			console.error('%c[jquery-clock-timepicker] Invalid precision specified: ' + settings.precision + '! Precision has to be 1, 5, 10, 15, 30 or 60. For now, the precision has been set back to: 1', 'color:orange');
@@ -284,8 +291,10 @@
 				inputElement.css('display', 'inline-block')
 							.css('width', '100%')
 							.css('border', '0px')
+							.css('border-radius', '0px')
 							.css('outline', '0px')
 							.css('fontSize', isMobile() ? '40px' : '20px')
+							.css('margin', '0px')
 							.css('padding', '10px 0px')
 							.css('textAlign', 'center')
 							.css('color', settings.colors.popupHeaderTextColor)
@@ -521,26 +530,30 @@
 					selectHourOnInputElement();
 				}
 				else {
+					var textDirection = inputElement.css('direction');
+					if (!textDirection) textDirection = 'ltr';
+					var textAlignment = inputElement.css('text-align');
+					if (!textAlignment) textAlignment = 'left';
 					var elementWidth = inputElement.innerWidth();
 					var elementPaddingLeft = parseFloat(inputElement.css('padding-left'));
-					var elementPaddingRight = parseFloat(inputElement.css('padding-right'));				
+					var elementPaddingRight = parseFloat(inputElement.css('padding-right'));
 					var elementInnerWidth = elementWidth - elementPaddingLeft - elementPaddingRight;
 					tempAutosizeElement.css('display', 'inline-block');
 					tempAutosizeElement.html(inputElement.val());
-					var textWidth = tempAutosizeElement.innerWidth();				
+					var textWidth = tempAutosizeElement.innerWidth();
 					tempAutosizeElement.html(settings.separator);
 					var textCenter = tempAutosizeElement.innerWidth() / 2;
 					tempAutosizeElement.html(inputElement.val().replace(new RegExp(settings.separator + '[0-9]+$'), ''));
 					textCenter += tempAutosizeElement.innerWidth();
-					tempAutosizeElement.css('display', 'none');				
+					tempAutosizeElement.css('display', 'none');
 					var inputElementCenter = elementWidth / 2;
-					if (inputElement.css('text-align') == 'left') {
+					if (textAlignment == 'left' || textAlignment == 'justify' || (textDirection == 'ltr' && textAlignment == 'start') || (textDirection == 'rtl' && textAlignment == 'end')) {
 						inputElementCenter = Math.floor(elementPaddingLeft + textCenter);
 					}
-					else if (inputElement.css('text-align') == 'center') {
+					else if (textAlignment == 'center') {
 						inputElementCenter = Math.floor(elementPaddingLeft + ((elementInnerWidth - textWidth) / 2) + textCenter);
 					}
-					else if (inputElement.css('text-align') == 'right') {
+					else if (textAlignment == 'right' || (textDirection == 'ltr' && textAlignment == 'end') || (textDirection == 'rtl' && textAlignment == 'start')) {
 						inputElementCenter = Math.floor(elementPaddingLeft + elementInnerWidth - (textWidth - textCenter));
 					}
 					if (event.offsetX >= inputElementCenter - 2) {
@@ -1175,8 +1188,8 @@
 			function autosize() {
 				if (!settings.autosize || isMobile()) return;
 				tempAutosizeElement.html(element.val());
-				tempAutosizeElement.css('display', 'inline-block');
-				element.css('width', tempAutosizeElement.outerWidth() + 8 + parseInt(element.css('padding-left')) + parseInt(element.css('padding-right')) + 'px');
+				tempAutosizeElement.css('display', 'inline-block');				
+				element.css('width', tempAutosizeElement.outerWidth() + 5 + parseInt(element.css('padding-left')) + parseInt(element.css('padding-right')) + 'px');
 				tempAutosizeElement.css('display', 'none');
 			}
 			

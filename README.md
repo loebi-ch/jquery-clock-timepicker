@@ -216,6 +216,11 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.2.1**  
+- Issue #9 perfectionated to select hour/minute part with mouse click.  
+- Parse number settings as integer to prevent errors in calculations in case that a string is passed.  
+- Pull request #11 from reclaimingmytime inserted.  
+
 **Version 2.2.0**  
 - Issue #7 fixed. Now this plugin works in both portrait and landscape mode on the mobile phone.  
 
