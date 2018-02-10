@@ -136,6 +136,14 @@ The font size of the numbers that are displayed in the outer circle.
 The font family used to display the numbers.  
 *default: 'Arial'*
 
+- **fonts.buttonFontFamily**  
+The font family used for the "Cancel" and "OK" buttons on mobile devices.  
+*default: 'Arial'*
+
+- **fonts.inputFontFamily**  
+The font family used for the time indicator mobile devices.
+*default: 'Arial'*
+
 - **i18n.cancelButton**  
 The name of the button to cancel the time change. Only displayed on mobile phones.  
 *default: 'Cancel'*
