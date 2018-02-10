@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.2.1
+ * Version: 2.2.2
  */
  (function($) {
 	 
@@ -10,7 +10,7 @@
 		/************************************************************************************************
 		  DEFAULT SETTINGS (CAN BE OVERRIDDEN WITH THE OPTIONS ARGUMENT)
 		************************************************************************************************/
-		var settings = $.extend({
+		var settings = $.extend(true, {
 			afternoonHoursInOuterCircle: false,
 			autosize: false,
 			colors: {
