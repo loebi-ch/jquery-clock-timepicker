@@ -141,8 +141,12 @@ The font family used for the "Cancel" and "OK" buttons on mobile devices.
 *default: 'Arial'*
 
 - **fonts.inputFontFamily**  
-The font family used for the time indicator mobile devices.
+The font family used for the time indicator on mobile devices.
 *default: 'Arial'*
+
+- **fonts.generalFontFamily**  
+The general font family. *Caution*: Overrides overrides fontFamily, buttonFontFamily and inputFontFamily.
+*default: none*
 
 - **i18n.cancelButton**  
 The name of the button to cancel the time change. Only displayed on mobile phones.  
