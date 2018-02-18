@@ -65,6 +65,12 @@
 		settings.fonts.clockInnerCircleFontSize = parseInt(settings.fonts.clockInnerCircleFontSize);
 		settings.fonts.buttonFontSize = parseInt(settings.fonts.buttonFontSize);
 		
+		if (settings.fonts.generalFontFamily !== undefined) {
+      		settings.fonts.fontFamily = settings.fonts.generalFontFamily;
+      		settings.fonts.buttonFontFamily = settings.fonts.generalFontFamily;
+      		settings.fonts.inputFontFamily = settings.fonts.generalFontFamily;
+		}
+		
 		if (settings.precision != 1 && settings.precision != 5 && settings.precision != 10 && settings.precision != 15 && settings.precision != 30 && settings.precision != 60) {
 			console.error('%c[jquery-clock-timepicker] Invalid precision specified: ' + settings.precision + '! Precision has to be 1, 5, 10, 15, 30 or 60. For now, the precision has been set back to: 1', 'color:orange');
 			settings.precision = 1;
