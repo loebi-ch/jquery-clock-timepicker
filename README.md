@@ -200,6 +200,10 @@ The separator separating the hour and the minute parts.
 (NOT IMPLEMENTED YET) Set to true, if you want to use the American/Canadian time with AM and PM.  
 *default: false*
 
+- **useDurationPlusSign**  
+If set to true, positive durations use the plus sign (+) as a prefix.  
+*default: false*
+
 - **vibrate**  
 If this is activated the mobile phone vibrates while changing the time.  
 *default: true*
@@ -215,6 +219,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 
 Changelog
 ---------
+
+**Version 2.2.3**  
+- Option ```useDurationPlusSign``` implemented.  
 
 **Version 2.2.2**  
 - Issue #12 fixed.  
