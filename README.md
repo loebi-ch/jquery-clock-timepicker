@@ -220,6 +220,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.2.4**  
+- Hide example console output that was deployed in version 2.2.3 by mistake.  
+
 **Version 2.2.3**  
 - Option ```useDurationPlusSign``` implemented.  
 

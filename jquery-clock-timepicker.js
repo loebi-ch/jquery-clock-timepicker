@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.2.3
+ * Version: 2.2.4
  */
  (function($) {
 	 
@@ -43,8 +43,8 @@
 			minimum: '-23:59',
 			modeSwitchSpeed: 500,
 			onlyShowClockOnMobile: false,
-			onAdjust: function(newVal, oldVal) { console.log('Value adjusted from ' + oldVal + ' to ' + newVal + '.'); },
-			onChange: function(newVal, oldVal) { console.log('Value changed from ' + oldVal + ' to ' + newVal + '.'); },
+			onAdjust: function(newVal, oldVal) { /*console.log('Value adjusted from ' + oldVal + ' to ' + newVal + '.');*/ },
+			onChange: function(newVal, oldVal) { /*console.log('Value changed from ' + oldVal + ' to ' + newVal + '.');*/ },
 			onClose: function() { },
 			onModeSwitch: function() { },
 			onOpen: function() { },
@@ -53,6 +53,7 @@
 			required: false,
 			separator: ':',
 			useAmPm: false, //NOT YET IMPLEMENTED
+			useDurationPlusSign: false,
 			vibrate: true
 		}, typeof options == 'object' ? options : {});
 		
