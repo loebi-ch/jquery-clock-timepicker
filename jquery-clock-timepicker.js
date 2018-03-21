@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.2.4
+ * Version: 2.2.5
  */
  (function($) {
 	 
@@ -414,7 +414,7 @@
 							if (oldVal.match(/^-/)) {
 								newVal = oldVal.substring(1);
 							} else {
-								newVal = '-' + oldVal;
+								newVal = '-' + oldVal.replace(/^(-|\+)/, '');
 							}
 							if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) newVal = formatTime(settings.minimum);
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);
@@ -472,7 +472,7 @@
 							if (oldVal.match(/^-/)) {
 								newVal = oldVal.substring(1);
 							} else {
-								newVal = '-' + oldVal;
+								newVal = '-' + oldVal.replace(/^(-|\+)/, '');
 							}
 							if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) newVal = formatTime(settings.minimum);
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);

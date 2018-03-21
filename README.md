@@ -220,6 +220,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.2.5**  
+- Fixed a converting bug when switching between minus and plus sign.  
+
 **Version 2.2.4**  
 - Hide example console output that was deployed in version 2.2.3 by mistake.  
 
