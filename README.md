@@ -46,6 +46,16 @@ $('.your-time-field').clockTimePicker({
 });
 ```
 
+It is also possible to configure the ClockTimePicker element by using data attributes of the DOM element, i.e.
+
+```html
+<input class="time" type="text" data-precision="5" data-minimum="10:00" data-maximum="20:00" />
+```
+
+You can combine the configuration by JavaScript and by the DOM data attributes. For example, you can use the JavaScript configuration to make a standard configuration
+for all your ClockTimePicker elements on the site and use the DOM data attributes to change configuration for individual elements. The data attributes have precedence
+over the JavaScript settings.
+
 If you want to set new options at runtime (after an input element already has been intialized), just call the function again with all desired options.
 
 If you want to dispose/destroy an initialized clock time picker element, please use the following code:
@@ -84,8 +94,16 @@ The color of the clock face.
 The text color of the numbers displayed in the inner circle.  
 *default: '#888888'*
 
+- **colors.clockInnerCircleUnselectableTextColor**  
+The text color of the unselectable numbers displayed in the inner circle. (only used in combination with ```minimum``` and ```maximum``` option)  
+*default: '#888888'*
+
 - **colors.clockOuterCircleTextColor**  
 The text color of the numbers displayed in the outer circle.  
+*default: '#000000'*
+
+- **colors.clockOuterCircleUnselectableTextColor**  
+The text color of the unselectable numbers displayed in the outer circle. (only used in combination with ```minimum``` and ```maximum``` option)  
 *default: '#000000'*
 
 - **colors.hoverCircleColor**  
@@ -135,6 +153,10 @@ The font size of the numbers that are displayed in the outer circle.
 - **fonts.fontFamily**  
 The font family used to display the numbers.  
 *default: 'Arial'*
+
+- **hideUnselectableNumbers**  
+Set this option to true if you want to completely hide the unselectable numbers (in case you're using ```minimum``` and ```maximum``` option).  
+*default: false*
 
 - **i18n.cancelButton**  
 The name of the button to cancel the time change. Only displayed on mobile phones.  
@@ -219,6 +241,14 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 
 Changelog
 ---------
+
+**Version 2.3.0**  
+- Issue #15 solved.  
+- Feature request #17 implemented: Showing unselectable numbers when using ```minimum``` and ```maximum``` options.  
+- Hide unselectable numbers completely by using ```hideUnselectableNumbers``` option.  
+- Configure text colors for unselectable numbers with new options ```clockInnerCircleUnselectableTextColor``` and ```clockOuterCircleUnselectableTextColor```.  
+- Feature request #18 implemented: Use of data attributes to configure ClockTimePicker element.  
+- Bugfix for wrong hovering when using ```afternoonHoursInOuterCircle``` (Issue #16).  
 
 **Version 2.2.5**  
 - Fixed a converting bug when switching between minus and plus sign.  

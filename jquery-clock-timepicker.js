@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.2.5
+ * Version: 2.3.0
  */
  (function($) {
 	 
@@ -17,7 +17,9 @@
 				buttonTextColor: '#0797FF',
 				clockFaceColor: '#EEEEEE',
 				clockInnerCircleTextColor: '#888888',
+				clockInnerCircleUnselectableTextColor: '#CCCCCC',
 				clockOuterCircleTextColor: '#000000',
+				clockOuterCircleUnselectableTextColor: '#CCCCCC',
 				hoverCircleColor: '#DDDDDD',
 				popupBackgroundColor: '#FFFFFF',
 				popupHeaderBackgroundColor: '#0797FF',
@@ -35,6 +37,7 @@
 				clockInnerCircleFontSize: 12,
 				buttonFontSize: 20
 			},
+			hideUnselectableNumbers: false,
 			i18n: {
 				okButton: 'OK',
 				cancelButton: 'Cancel'
@@ -56,38 +59,6 @@
 			useDurationPlusSign: false,
 			vibrate: true
 		}, typeof options == 'object' ? options : {});
-		
-		settings.precision = parseInt(settings.precision);
-		settings.modeSwitchSpeed = parseInt(settings.modeSwitchSpeed);
-		settings.popupWidthOnDesktop = parseInt(settings.popupWidthOnDesktop);
-		settings.fonts.clockOuterCircleFontSize = parseInt(settings.fonts.clockOuterCircleFontSize);
-		settings.fonts.clockInnerCircleFontSize = parseInt(settings.fonts.clockInnerCircleFontSize);
-		settings.fonts.buttonFontSize = parseInt(settings.fonts.buttonFontSize);
-		
-		if (settings.precision != 1 && settings.precision != 5 && settings.precision != 10 && settings.precision != 15 && settings.precision != 30 && settings.precision != 60) {
-			console.error('%c[jquery-clock-timepicker] Invalid precision specified: ' + settings.precision + '! Precision has to be 1, 5, 10, 15, 30 or 60. For now, the precision has been set back to: 1', 'color:orange');
-			settings.precision = 1;
-		}
-		if (!settings.separator || ('' + settings.separator).match(/[0-9]+/)) {
-			console.error('%c[jquery-clock-timepicker] Invalid separator specified: ' + (settings.separator ? settings.separator : '(empty)') + '! The separator cannot be empty nor can it contain any decimals. For now, the separator has been set back to a colon (:).', 'color:orange');
-			settings.separator = ':';
-		}
-		if (settings.durationNegative && !settings.duration) {
-			console.log('%c[jquery-clock-timepicker] durationNegative is set to true, but this has no effect because duration is false!', 'color:orange');
-		}
-		if (settings.maximum && !settings.maximum.match(/^-?[0-9]+:[0-9]{2}$/)) {
-			console.log('%c[jquery-clock-timepicker] Invalid time format for option "maximum": ' + settings.maximum + '! Maximum not used...', 'color:orange');
-			settings.maximum = null;
-		}
-		if (settings.minimum && !settings.minimum.match(/^-?[0-9]+:[0-9]{2}$/)) {
-			console.log('%c[jquery-clock-timepicker] Invalid time format for option "minimum": ' + settings.minimum + '! Minimum not used...', 'color:orange');
-			settings.minimum = null;
-		}
-		if (settings.minimum && settings.maximum && (settings.minimum == settings.maximum || !isTimeSmallerOrEquals(settings.minimum, settings.maximum))) {
-			console.log('%c[jquery-clock-timepicker] Option "minimum" must be smaller than the option "maximum"!', 'color:orange');
-			settings.minimum = null;
-		}
-		
 		
 		
 		/************************************************************************************************
@@ -117,6 +88,20 @@
 		//for each selected element
 		return this.each(function() {
 			
+			var element = $(this);
+			
+			//Adjust settings by data attributes
+			var dataOptions = {}, _data = element.data();
+			for (var dataOption in _data) {
+				if (settings.hasOwnProperty(dataOption)) {
+					console.log(dataOption + ' = ' + _data[dataOption]);
+					settings[dataOption] = _data[dataOption];
+				}
+			}
+			
+			//Validate settings
+			validateSettings();
+			
 			//VIBRATION API
 			if (!('vibrate' in navigator)) settings.vibrate = false;
 			
@@ -143,7 +128,6 @@
 			/************************************************************************************************
 			  INITIALIZE VARIABLES
 			 ************************************************************************************************/
-			var element = $(this);
 			element.val(formatTime(element.val()));
 			if (isMobile()) element.prop('readonly', true);
 			var oldValue = element.val();
@@ -655,6 +639,9 @@
 							if (h == 24) h = 0;
 						}
 					}
+					if (settings.afternoonHoursInOuterCircle) {
+						h = h + (h >= 12 ? -12 : 12);
+					}
 					if (h > -1) {
 						var newVal = (negative ? '-' : '') +(h < 10 && !settings.duration ? '0' : '') + h + settings.separator + (min < 10 ? '0' : '') + min;						
 						if (isDragging || clicked) {
@@ -807,7 +794,7 @@
 				if (!isMobile() && hoverHour) {
 					var isMinMaxFullfilled = true;
 					if (settings.maximum && !isTimeSmallerOrEquals((negative ? '-' : '') + (hoverHour == 24 ? '00' : hoverHour) + ':00', settings.maximum)) isMinMaxFullfilled = false;
-					if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + (hoverHour == 24 ? '00' : hoverHour) + ':00')) isMinMaxFullfilled = false;
+					if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + (hoverHour == 24 ? '00' : hoverHour) + ':00', true)) isMinMaxFullfilled = false;
 					if (isMinMaxFullfilled) {
 						ctx.beginPath();
 						ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((hoverHour % 12) - 3)) * (hoverHour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
@@ -852,11 +839,18 @@
 					} else {
 						if (hour == i) ctx.fillStyle = settings.colors.selectorNumberColor;
 						else ctx.fillStyle = settings.colors.clockOuterCircleTextColor;
-					}
-					if ((!settings.maximum || isTimeSmallerOrEquals((negative ? '-' : '') + s + ':00', settings.maximum)) && (!settings.minimum || isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + s + ':00'))) {
+					}					
+					if ((!settings.maximum || isTimeSmallerOrEquals((negative ? '-' : '') + s + ':00', settings.maximum)) &&
+						(!settings.minimum || isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + s + ':00', true))) {
 						ctx.fillText(s,
-								 clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
-								 clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
+							clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
+					}
+					else if (!settings.hideUnselectableNumbers) {
+						ctx.fillStyle = settings.colors.clockOuterCircleUnselectableTextColor;
+						ctx.fillText(s,
+							clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
 					}
 				}
 				
@@ -874,10 +868,17 @@
 						if (hour == i) ctx.fillStyle = settings.colors.selectorNumberColor;
 						else ctx.fillStyle = settings.colors.clockOuterCircleTextColor;
 					}					
-					if ((!settings.maximum || isTimeSmallerOrEquals((negative ? '-' : '') + s + ':00', settings.maximum)) && (!settings.minimum || isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + s + ':00'))) {
+					if ((!settings.maximum || isTimeSmallerOrEquals((negative ? '-' : '') + s + ':00', settings.maximum)) &&
+						(!settings.minimum || isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + s + ':00', true))) {
 						ctx.fillText(s,
-								 clockCenterX + Math.cos(angle) * clockInnerRadius - (ctx.measureText(s).width / 2),
-								 clockCenterY + Math.sin(angle) * clockInnerRadius + (settings.fonts.clockInnerCircleFontSize / 3));
+							clockCenterX + Math.cos(angle) * clockInnerRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockInnerRadius + (settings.fonts.clockInnerCircleFontSize / 3));
+					}
+					else if (!settings.hideUnselectableNumbers) {
+						ctx.fillStyle = settings.colors.clockInnerCircleUnselectableTextColor;
+						ctx.fillText(s,
+							clockCenterX + Math.cos(angle) * clockInnerRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockInnerRadius + (settings.fonts.clockInnerCircleFontSize / 3));
 					}
 				}
 				
@@ -958,8 +959,14 @@
 					if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + hour + ':' + s)) isMinMaxFullfilled = false;
 					if (isMinMaxFullfilled) {
 						ctx.fillText(s,
-								 clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
-								 clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
+							clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
+					}
+					else if (!settings.hideUnselectableNumbers) {
+						ctx.fillStyle = settings.colors.clockOuterCircleUnselectableTextColor;
+						ctx.fillText(s,
+							clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
 					}
 				}
 				
@@ -1679,18 +1686,51 @@
 		/************************************************************************************************
 		  FUNCTION TO COMPARE TWO TIMES
 		 ************************************************************************************************/
-		function isTimeSmallerOrEquals(time1, time2) {
+		function isTimeSmallerOrEquals(time1, time2, doNotInvolveMinutePart) {
 			var regex = '^(-|\\+)?([0-9]+)(.([0-9]{1,2}))?$';
 			(new RegExp(regex, 'i')).test(time1);
 			var t1 = parseInt(RegExp.$2) * 60;
-			if (RegExp.$4) t1 += parseInt(RegExp.$4);
+			if (RegExp.$4 && !doNotInvolveMinutePart) t1 += parseInt(RegExp.$4);
 			if (RegExp.$1 == '-') t1 *= -1;
 			(new RegExp(regex, 'i')).test(time2);
 			var t2 = parseInt(RegExp.$2) * 60;
-			if (RegExp.$4) t2 += parseInt(RegExp.$4);
+			if (RegExp.$4 && !doNotInvolveMinutePart) t2 += parseInt(RegExp.$4);
 			if (RegExp.$1 == '-') t2 *= -1;
 			if (t1 <= t2) return true;
 			else return false;
+		}
+		
+		function validateSettings() {
+			settings.precision = parseInt(settings.precision);
+			settings.modeSwitchSpeed = parseInt(settings.modeSwitchSpeed);
+			settings.popupWidthOnDesktop = parseInt(settings.popupWidthOnDesktop);
+			settings.fonts.clockOuterCircleFontSize = parseInt(settings.fonts.clockOuterCircleFontSize);
+			settings.fonts.clockInnerCircleFontSize = parseInt(settings.fonts.clockInnerCircleFontSize);
+			settings.fonts.buttonFontSize = parseInt(settings.fonts.buttonFontSize);
+			
+			if (settings.precision != 1 && settings.precision != 5 && settings.precision != 10 && settings.precision != 15 && settings.precision != 30 && settings.precision != 60) {
+				console.error('%c[jquery-clock-timepicker] Invalid precision specified: ' + settings.precision + '! Precision has to be 1, 5, 10, 15, 30 or 60. For now, the precision has been set back to: 1', 'color:orange');
+				settings.precision = 1;
+			}
+			if (!settings.separator || ('' + settings.separator).match(/[0-9]+/)) {
+				console.error('%c[jquery-clock-timepicker] Invalid separator specified: ' + (settings.separator ? settings.separator : '(empty)') + '! The separator cannot be empty nor can it contain any decimals. For now, the separator has been set back to a colon (:).', 'color:orange');
+				settings.separator = ':';
+			}
+			if (settings.durationNegative && !settings.duration) {
+				console.log('%c[jquery-clock-timepicker] durationNegative is set to true, but this has no effect because duration is false!', 'color:orange');
+			}
+			if (settings.maximum && !settings.maximum.match(/^-?[0-9]+:[0-9]{2}$/)) {
+				console.log('%c[jquery-clock-timepicker] Invalid time format for option "maximum": ' + settings.maximum + '! Maximum not used...', 'color:orange');
+				settings.maximum = null;
+			}
+			if (settings.minimum && !settings.minimum.match(/^-?[0-9]+:[0-9]{2}$/)) {
+				console.log('%c[jquery-clock-timepicker] Invalid time format for option "minimum": ' + settings.minimum + '! Minimum not used...', 'color:orange');
+				settings.minimum = null;
+			}
+			if (settings.minimum && settings.maximum && (settings.minimum == settings.maximum || !isTimeSmallerOrEquals(settings.minimum, settings.maximum))) {
+				console.log('%c[jquery-clock-timepicker] Option "minimum" must be smaller than the option "maximum"!', 'color:orange');
+				settings.minimum = null;
+			}
 		}
 	};	
 }(jQuery));
