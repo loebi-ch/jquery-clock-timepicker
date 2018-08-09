@@ -1,12 +1,12 @@
-/* 
+/*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.2.2
+ * Version: 2.3.0
  */
  (function($) {
-	 
+
 	$.fn.clockTimePicker = function(options, _value) {
-		
+
 		/************************************************************************************************
 		  DEFAULT SETTINGS (CAN BE OVERRIDDEN WITH THE OPTIONS ARGUMENT)
 		************************************************************************************************/
@@ -17,12 +17,14 @@
 				buttonTextColor: '#0797FF',
 				clockFaceColor: '#EEEEEE',
 				clockInnerCircleTextColor: '#888888',
+				clockInnerCircleUnselectableTextColor: '#CCCCCC',
 				clockOuterCircleTextColor: '#000000',
+				clockOuterCircleUnselectableTextColor: '#CCCCCC',
 				hoverCircleColor: '#DDDDDD',
 				popupBackgroundColor: '#FFFFFF',
 				popupHeaderBackgroundColor: '#0797FF',
-				popupHeaderTextColor: '#FFFFFF',				
-				selectorColor: '#0797FF',				
+				popupHeaderTextColor: '#FFFFFF',
+				selectorColor: '#0797FF',
 				selectorNumberColor: '#FFFFFF',
 				signButtonColor: '#FFFFFF',
 				signButtonBackgroundColor: '#0797FF'
@@ -37,6 +39,7 @@
 				buttonFontSize: 20,
 				inputFontFamily: 'Arial'
 			},
+			hideUnselectableNumbers: false,
 			i18n: {
 				okButton: 'OK',
 				cancelButton: 'Cancel'
@@ -55,48 +58,11 @@
 			required: false,
 			separator: ':',
 			useAmPm: false, //NOT YET IMPLEMENTED
+			useDurationPlusSign: false,
 			vibrate: true
 		}, typeof options == 'object' ? options : {});
-		
-		settings.precision = parseInt(settings.precision);
-		settings.modeSwitchSpeed = parseInt(settings.modeSwitchSpeed);
-		settings.popupWidthOnDesktop = parseInt(settings.popupWidthOnDesktop);
-		settings.fonts.clockOuterCircleFontSize = parseInt(settings.fonts.clockOuterCircleFontSize);
-		settings.fonts.clockInnerCircleFontSize = parseInt(settings.fonts.clockInnerCircleFontSize);
-		settings.fonts.buttonFontSize = parseInt(settings.fonts.buttonFontSize);
-		
-		if (settings.fonts.generalFontFamily !== undefined) {
-      		settings.fonts.fontFamily = settings.fonts.generalFontFamily;
-      		settings.fonts.buttonFontFamily = settings.fonts.generalFontFamily;
-      		settings.fonts.inputFontFamily = settings.fonts.generalFontFamily;
-		}
-		
-		if (settings.precision != 1 && settings.precision != 5 && settings.precision != 10 && settings.precision != 15 && settings.precision != 30 && settings.precision != 60) {
-			console.error('%c[jquery-clock-timepicker] Invalid precision specified: ' + settings.precision + '! Precision has to be 1, 5, 10, 15, 30 or 60. For now, the precision has been set back to: 1', 'color:orange');
-			settings.precision = 1;
-		}
-		if (!settings.separator || ('' + settings.separator).match(/[0-9]+/)) {
-			console.error('%c[jquery-clock-timepicker] Invalid separator specified: ' + (settings.separator ? settings.separator : '(empty)') + '! The separator cannot be empty nor can it contain any decimals. For now, the separator has been set back to a colon (:).', 'color:orange');
-			settings.separator = ':';
-		}
-		if (settings.durationNegative && !settings.duration) {
-			console.log('%c[jquery-clock-timepicker] durationNegative is set to true, but this has no effect because duration is false!', 'color:orange');
-		}
-		if (settings.maximum && !settings.maximum.match(/^-?[0-9]+:[0-9]{2}$/)) {
-			console.log('%c[jquery-clock-timepicker] Invalid time format for option "maximum": ' + settings.maximum + '! Maximum not used...', 'color:orange');
-			settings.maximum = null;
-		}
-		if (settings.minimum && !settings.minimum.match(/^-?[0-9]+:[0-9]{2}$/)) {
-			console.log('%c[jquery-clock-timepicker] Invalid time format for option "minimum": ' + settings.minimum + '! Minimum not used...', 'color:orange');
-			settings.minimum = null;
-		}
-		if (settings.minimum && settings.maximum && (settings.minimum == settings.maximum || !isTimeSmallerOrEquals(settings.minimum, settings.maximum))) {
-			console.log('%c[jquery-clock-timepicker] Option "minimum" must be smaller than the option "maximum"!', 'color:orange');
-			settings.minimum = null;
-		}
-		
-		
-		
+
+
 		/************************************************************************************************
 		  DYNAMICALLY INSERT CSS CODE FOR SELECTION ON MOBILE
 		 ************************************************************************************************/
@@ -113,20 +79,34 @@
 			if (cssFound) return true;
 			else return false;
 		}
-		if (!cssAlreadyInitialized()) {			
+		if (!cssAlreadyInitialized()) {
 			var style = document.createElement('style');
 			style.type = 'text/css';
 			if (style.styleSheet) style.styleSheet.cssText = css;
 			else style.appendChild(document.createTextNode(css));
 			(document.head || document.getElementsByTagName('head')[0]).appendChild(style);
 		}
-		
+
 		//for each selected element
 		return this.each(function() {
-			
+
+			var element = $(this);
+
+			//Adjust settings by data attributes
+			var dataOptions = {}, _data = element.data();
+			for (var dataOption in _data) {
+				if (settings.hasOwnProperty(dataOption)) {
+					console.log(dataOption + ' = ' + _data[dataOption]);
+					settings[dataOption] = _data[dataOption];
+				}
+			}
+
+			//Validate settings
+			validateSettings();
+
 			//VIBRATION API
 			if (!('vibrate' in navigator)) settings.vibrate = false;
-			
+
 			if (typeof options == 'string') {
 				if (!$(this).parent().hasClass('clock-timepicker')) console.log('%c[jquery-clock-timepicker] Before calling a function, please initialize the ClockTimePicker!', 'color:red');
 				else {
@@ -144,13 +124,12 @@
 			} else {
 				if ($(this).parent().hasClass('clock-timepicker')) disposeTimePicker($(this));
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  INITIALIZE VARIABLES
 			 ************************************************************************************************/
-			var element = $(this);
 			element.val(formatTime(element.val()));
 			if (isMobile()) element.prop('readonly', true);
 			var oldValue = element.val();
@@ -165,16 +144,16 @@
 			var clockCenterY = parseInt(canvasSize / 2);
 			var clockOuterRadius = clockRadius - 16;
 			var clockInnerRadius = clockOuterRadius - 29;
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  INITIALIZE A NEW PARENT ELEMENT THAT ENCAPSULATES THE INPUT FIELD
 			 ************************************************************************************************/
 			element.wrap('<div class="clock-timepicker" style="display:inline-block; position:relative">');
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  TEMPORARY AUTOSIZE ELEMENT
 			 ************************************************************************************************/
@@ -191,9 +170,9 @@
 			element.parent().append(tempAutosizeElement);
 			element.css('min-width', element.outerWidth());
 			autosize();
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  INITIALIZE THE DIV TO DARKEN THE WEBSITE WHILE CHOOSING A TIME
 			 ************************************************************************************************/
@@ -209,13 +188,13 @@
 							.css('height', '100%')
 							.css('backgroundColor', 'rgba(0,0,0,0.6)');
 				element.parent().append(background);
-				
+
 				function onBackgroundTouchMove(event) {
 					event.preventDefault();
 				}
 				background.off('touchmove', onBackgroundTouchMove);
 				background.on('touchmove', onBackgroundTouchMove);
-				
+
 				function onBackgroundClick(event) {
 					event.preventDefault();
 					event.stopImmediatePropagation();
@@ -224,11 +203,11 @@
 					return false;
 				}
 				background.off('click', onBackgroundClick);
-				background.on('click', onBackgroundClick);				
+				background.on('click', onBackgroundClick);
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  INITIALIZE POPUP
 			 ************************************************************************************************/
@@ -248,20 +227,20 @@
 				popup.css('position', 'fixed')
 					 .css('left', '40px')
 					 .css('top', '40px');
-				
+
 				window.addEventListener("orientationchange", function() {
 					setTimeout(function() {
 						adjustMobilePopupDimensionAndPosition();
 						repaintClock();
 					}, 500);
 				});
-				
+
 				function onPopupTouchMove(event) {
 					event.preventDefault();
 				}
 				popup.off('touchmove', onPopupTouchMove);
 				popup.on('touchmove', onPopupTouchMove);
-				
+
 				function onPopupClick(event) {
 					event.stopImmediatePropagation();
 					if (selectionMode == 'HOUR') selectHourOnInputElement();
@@ -272,9 +251,9 @@
 				popup.on('click', onPopupClick);
 			}
 			element.parent().append(popup);
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  DESKTOP VERSION: A CLICK OUTSIDE OF THE POPUP SHOULD CLOSE THE TIME PICKER
 			 ************************************************************************************************/
@@ -287,12 +266,12 @@
 				$(window).off('click', onWindowClick);
 				$(window).on('click', onWindowClick);
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  INITIALIZE INPUT ELEMENT
-			 ************************************************************************************************/			
+			 ************************************************************************************************/
 			var inputElement = element;
 			if (isMobile()) {
 				inputElement = $('<input class="clock-timepicker-mobile-input" type="text">');
@@ -310,7 +289,7 @@
 							.css('backgroundColor', settings.colors.popupHeaderBackgroundColor);
 				inputElement.prop('readonly', true);
 				popup.append(inputElement);
-			}			
+			}
 			if (element.attr('autocomplete')) element.attr('data-autocomplete-orig', element.attr('autocomplete'));
 			element.prop('autocomplete', 'off');
 			if (element.attr('autocorrect')) element.attr('data-autocorrect-orig', element.attr('autocorrect'));
@@ -325,9 +304,9 @@
 			inputElement.on('keydown.clockTimePicker', onInputElementKeyDown);
 			element.on('mousewheel.clockTimePicker', onInputElementMouseWheel);
 			element.on('focus.clockTimePicker', onInputElementFocus);
-			
-			
-					
+
+
+
 			/************************************************************************************************
 			  INITIALIZE CLOCK CANVASES
 			 ************************************************************************************************/
@@ -356,9 +335,9 @@
 			clockMinuteCanvas.attr('height', canvasSize);
 			registerDraggingEventsOnCanvas(clockMinuteCanvas);
 			canvasHolder.append(clockMinuteCanvas);
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  INITIALIZE BUTTON AREA
 			 ************************************************************************************************/
@@ -384,9 +363,9 @@
 				buttonArea.append(okButton);
 				popup.append(buttonArea);
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  BLUR ALL
 			 ************************************************************************************************/
@@ -397,14 +376,14 @@
 				tmp.focus();
 				element.parent().get(0).removeChild(tmp);
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  REGISTER DRAGGING EVENT LISTENERS ON CANVASES
 			 ************************************************************************************************/
 			function registerDraggingEventsOnCanvas(canvas) {
-				
+
 				//Mouse Drag Events for Desktop Version
 				if (!isMobile()) {
 					canvas.on('mousedown', function(event) {
@@ -423,13 +402,13 @@
 							if (oldVal.match(/^-/)) {
 								newVal = oldVal.substring(1);
 							} else {
-								newVal = '-' + oldVal;
+								newVal = '-' + oldVal.replace(/^(-|\+)/, '');
 							}
 							if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) newVal = formatTime(settings.minimum);
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);
-							inputElement.val(newVal);
+							inputElement.val(formatTime(newVal));
 							repaintClock();
-							settings.onAdjust.call(element.get(0), newVal, oldVal);
+							settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 							if (selectionMode == 'HOUR') selectHourOnInputElement();
 							else selectMinuteOnInputElement();
 							return;
@@ -462,12 +441,12 @@
 						if (selectionMode == 'HOUR') repaintClockHourCanvas();
 						else repaintClockMinuteCanvas();
 					});
-					
+
 					canvas.on('mousewheel', function(event) {
 						processMouseWheelEvent(event);
 					});
 				}
-				
+
 				//Touch Events for Mobile Version
 				else {
 					canvas.on('touchstart', function(event) {
@@ -481,13 +460,13 @@
 							if (oldVal.match(/^-/)) {
 								newVal = oldVal.substring(1);
 							} else {
-								newVal = '-' + oldVal;
+								newVal = '-' + oldVal.replace(/^(-|\+)/, '');
 							}
 							if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) newVal = formatTime(settings.minimum);
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);
-							inputElement.val(newVal);
+							inputElement.val(formatTime(newVal));
 							repaintClock();
-							settings.onAdjust.call(element.get(0), newVal, oldVal);
+							settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 							if (selectionMode == 'HOUR') selectHourOnInputElement();
 							else selectMinuteOnInputElement();
 							return;
@@ -513,7 +492,7 @@
 						}
 					});
 				}
-				
+
 				canvas.on('keydown', function(event) {
 					event.preventDefault();
 					processTimeSelection();
@@ -522,13 +501,13 @@
 					oldValue = inputElement.val();
 				});
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  PROCESSES LEFT OR RIGHT MOUSE CLICK AND SINGLE TAP ON MOBILE PHONES
-			 ************************************************************************************************/	
-			function processClick(event) {				
+			 ************************************************************************************************/
+			function processClick(event) {
 				var popupVisible = popup.css('display') != 'none';
 				if (!inputElement.val()) {
 					inputElement.val(formatTime('00:00'));
@@ -578,17 +557,17 @@
 				}
 				if (!popupVisible) showTimePicker();
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  PROCESSES THE MOUSE WHEEL EVENT AND INCREASES OR DECREASES HOURS OR MINUTES
-			 ************************************************************************************************/	
+			 ************************************************************************************************/
 			function processMouseWheelEvent(event) {
 				var e = window.event || event;
 				event.preventDefault();
-				var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));				
-				(new RegExp('^(-)?([0-9]+)(.([0-9]{1,2}))?$')).test(inputElement.val());
+				var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
+				(new RegExp('^(-|\\+)?([0-9]+)(.([0-9]{1,2}))?$')).test(inputElement.val());
 				var negative = settings.duration && settings.durationNegative && RegExp.$1 == '-' ? true : false;
 				var h = parseInt(RegExp.$2);
 				if (negative) h = -h;
@@ -608,7 +587,7 @@
 					if (m >= 60) m = m - 60;
 				}
 				var oldVal = inputElement.val();
-				var newVal = (h < 10 && !settings.duration ? '0': '') + (negative && h == 0 ? '-' + h : h) + settings.separator + (m < 10 ? '0' : '') + m;				
+				var newVal = (h < 10 && !settings.duration ? '0': '') + (negative && h == 0 ? '-' + h : h) + settings.separator + (m < 10 ? '0' : '') + m;
 				var isMinMaxFullfilled = true;
 				if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) isMinMaxFullfilled = false;
 				if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) isMinMaxFullfilled = false;
@@ -618,31 +597,31 @@
 					isMinMaxFullfilled = true;
 				}
 				if (isMinMaxFullfilled) {
-					inputElement.val(newVal);
+					inputElement.val(formatTime(newVal));
 					autosize();
 					repaintClock();
 					if (selectionMode == 'HOUR') selectHourOnInputElement();
 					else selectMinuteOnInputElement();
-					if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
+					if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 				}
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  CONVERTS A CLICK / TOUCH IN THE CANVAS TO A TIME AND SETS THE NEW VALUE
-			 ************************************************************************************************/	
+			 ************************************************************************************************/
 			function processTimeSelection(x, y, clicked) {
 				var selectorAngle = (360 * Math.atan((y - clockCenterY)/(x - clockCenterX)) / (2 * Math.PI)) + 90;
-				var selectorLength = Math.sqrt(Math.pow(Math.abs(x - clockCenterX), 2) + Math.pow(Math.abs(y - clockCenterY), 2));				
+				var selectorLength = Math.sqrt(Math.pow(Math.abs(x - clockCenterX), 2) + Math.pow(Math.abs(y - clockCenterY), 2));
 				var hour = 0;
 				var min = 0;
 				var negative = false;
-				if ((new RegExp('^(-)?([0-9]+).([0-9]{2})$')).test(inputElement.val())) {
+				if ((new RegExp('^(-|\\+)?([0-9]+).([0-9]{2})$')).test(inputElement.val())) {
 					negative = settings.duration && settings.durationNegative && RegExp.$1 == '-' ? true : false;
 					hour = parseInt(RegExp.$2);
 					min = parseInt(RegExp.$3);
-				}				
+				}
 				if (selectionMode == 'HOUR') {
 					selectorAngle = Math.round(selectorAngle / 30);
 					var h = -1;
@@ -664,8 +643,11 @@
 							if (h == 24) h = 0;
 						}
 					}
+					if (settings.afternoonHoursInOuterCircle) {
+						h = h + (h >= 12 ? -12 : 12);
+					}
 					if (h > -1) {
-						var newVal = (negative ? '-' : '') +(h < 10 && !settings.duration ? '0' : '') + h + settings.separator + (min < 10 ? '0' : '') + min;						
+						var newVal = (negative ? '-' : '') +(h < 10 && !settings.duration ? '0' : '') + h + settings.separator + (min < 10 ? '0' : '') + min;
 						if (isDragging || clicked) {
 							var isMinMaxFullfilled = true;
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) isMinMaxFullfilled = false;
@@ -684,9 +666,9 @@
 								var oldVal = inputElement.val();
 								if (newVal != oldVal) {
 									if (settings.vibrate) navigator.vibrate(10);
-									settings.onAdjust.call(element.get(0), newVal, oldVal);
+									settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 								}
-								inputElement.val(newVal);
+								inputElement.val(formatTime(newVal));
 								autosize();
 							}
 						}
@@ -723,9 +705,9 @@
 							var oldVal = inputElement.val();
 							if (newVal != oldVal) {
 								if (settings.vibrate) navigator.vibrate(10);
-								settings.onAdjust.call(element.get(0), newVal, oldVal);
+								settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 							}
-							inputElement.val(newVal);
+							inputElement.val(formatTime(newVal));
 						}
 						repaintClockMinuteCanvas(m == 0 ? 60 : m, settings.duration && settings.durationNegative && selectorLength <= 12);
 						return true;
@@ -736,9 +718,9 @@
 					}
 				}
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  REPAINTS THE CORRESPONDING CLOCK CANVAS DEPENDING ON CURRENT SELECTION MODE
 			 ************************************************************************************************/
@@ -749,9 +731,9 @@
 					repaintClockMinuteCanvas();
 				}
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  REPAINTS THE SIGN BUTTON (used by repaintClockHourCanvas and repaintClockMinuteCanvas)
 			 ************************************************************************************************/
@@ -781,42 +763,42 @@
 					ctx.stroke();
 				}
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  REPAINTS THE CLOCK HOUR CANVAS
 			 ************************************************************************************************/
 			function repaintClockHourCanvas(hoverHour, hoverSign) {
-				
+
 				var ctx = clockHourCanvas.get(0).getContext('2d');
-				(new RegExp('^(-)?([0-9]+).([0-9]{1,2})$')).test(inputElement.val());
+				(new RegExp('^(-|\\+)?([0-9]+).([0-9]{1,2})$')).test(inputElement.val());
 				var negative = RegExp.$1 == '-' ? true : false;
 				var hour = parseInt(RegExp.$2);
-				
+
 				ctx.clearRect(0, 0, canvasSize, canvasSize);
-				
+
 				if (hour >= 24) {
 					popup.css('visibility', 'hidden');
 					return;
 				} else {
 					if (!settings.onlyShowClockOnMobile) popup.css('visibility', 'visible');
 				}
-				
+
 				if (hour == 0) hour = 24;
 				if (!inputElement.val()) hour = -1;
-				
-				//Paint clock circle				
+
+				//Paint clock circle
 				ctx.beginPath();
 				ctx.arc(clockCenterX, clockCenterY, clockRadius, 0, 2 * Math.PI, false);
 				ctx.fillStyle = settings.colors.clockFaceColor;
 				ctx.fill();
-				
+
 				//Paint hover (if available)
 				if (!isMobile() && hoverHour) {
 					var isMinMaxFullfilled = true;
 					if (settings.maximum && !isTimeSmallerOrEquals((negative ? '-' : '') + (hoverHour == 24 ? '00' : hoverHour) + ':00', settings.maximum)) isMinMaxFullfilled = false;
-					if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + (hoverHour == 24 ? '00' : hoverHour) + ':00')) isMinMaxFullfilled = false;
+					if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + (hoverHour == 24 ? '00' : hoverHour) + ':00', true)) isMinMaxFullfilled = false;
 					if (isMinMaxFullfilled) {
 						ctx.beginPath();
 						ctx.arc(clockCenterX + Math.cos(Math.PI / 6 * ((hoverHour % 12) - 3)) * (hoverHour > 12 ? (settings.afternoonHoursInOuterCircle ? clockOuterRadius : clockInnerRadius) : (settings.afternoonHoursInOuterCircle ? clockInnerRadius : clockOuterRadius)),
@@ -826,7 +808,7 @@
 						ctx.fill();
 					}
 				}
-				
+
 				//Paint hour selector
 				ctx.beginPath();
 				ctx.arc(clockCenterX, clockCenterY, 3, 0, 2 * Math.PI, false);
@@ -847,7 +829,7 @@
 					ctx.fillStyle = settings.colors.selectorColor;
 					ctx.fill();
 				}
-				
+
 				//Paint hour numbers in outer circle
 				ctx.font = settings.fonts.clockOuterCircleFontSize + 'px ' + settings.fonts.fontFamily;
 				for(i = 1; i <= 12; i++) {
@@ -862,13 +844,20 @@
 						if (hour == i) ctx.fillStyle = settings.colors.selectorNumberColor;
 						else ctx.fillStyle = settings.colors.clockOuterCircleTextColor;
 					}
-					if ((!settings.maximum || isTimeSmallerOrEquals((negative ? '-' : '') + s + ':00', settings.maximum)) && (!settings.minimum || isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + s + ':00'))) {
+					if ((!settings.maximum || isTimeSmallerOrEquals((negative ? '-' : '') + s + ':00', settings.maximum)) &&
+						(!settings.minimum || isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + s + ':00', true))) {
 						ctx.fillText(s,
-								 clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
-								 clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
+							clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
+					}
+					else if (!settings.hideUnselectableNumbers) {
+						ctx.fillStyle = settings.colors.clockOuterCircleUnselectableTextColor;
+						ctx.fillText(s,
+							clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
 					}
 				}
-				
+
 				//Paint hour numbers in inner circle
 				ctx.font = settings.fonts.clockInnerCircleFontSize + 'px ' + settings.fonts.fontFamily;
 				for(i = 1; i <= 12; i++) {
@@ -882,40 +871,47 @@
 					} else {
 						if (hour == i) ctx.fillStyle = settings.colors.selectorNumberColor;
 						else ctx.fillStyle = settings.colors.clockOuterCircleTextColor;
-					}					
-					if ((!settings.maximum || isTimeSmallerOrEquals((negative ? '-' : '') + s + ':00', settings.maximum)) && (!settings.minimum || isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + s + ':00'))) {
+					}
+					if ((!settings.maximum || isTimeSmallerOrEquals((negative ? '-' : '') + s + ':00', settings.maximum)) &&
+						(!settings.minimum || isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + s + ':00', true))) {
 						ctx.fillText(s,
-								 clockCenterX + Math.cos(angle) * clockInnerRadius - (ctx.measureText(s).width / 2),
-								 clockCenterY + Math.sin(angle) * clockInnerRadius + (settings.fonts.clockInnerCircleFontSize / 3));
+							clockCenterX + Math.cos(angle) * clockInnerRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockInnerRadius + (settings.fonts.clockInnerCircleFontSize / 3));
+					}
+					else if (!settings.hideUnselectableNumbers) {
+						ctx.fillStyle = settings.colors.clockInnerCircleUnselectableTextColor;
+						ctx.fillText(s,
+							clockCenterX + Math.cos(angle) * clockInnerRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockInnerRadius + (settings.fonts.clockInnerCircleFontSize / 3));
 					}
 				}
-				
+
 				if (settings.duration && settings.durationNegative) repaintSignButton(ctx, hoverSign);
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  REPAINTS THE CLOCK MINUTE CANVAS
 			 ************************************************************************************************/
 			function repaintClockMinuteCanvas(hoverMinute, hoverSign) {
-				
-				var ctx = clockMinuteCanvas.get(0).getContext('2d');				
-				(new RegExp('^(-)?([0-9]+).([0-9]{1,2})$')).test(inputElement.val());
+
+				var ctx = clockMinuteCanvas.get(0).getContext('2d');
+				(new RegExp('^(-|\\+)?([0-9]+).([0-9]{1,2})$')).test(inputElement.val());
 				var negative = RegExp.$1 == '-' ? true : false;
 				var hour = parseInt(RegExp.$2);
 				var min = parseInt(RegExp.$3);
 				if (!inputElement.val()) min = -1;
-				
+
 				if (!settings.onlyShowClockOnMobile) popup.css('visibility', 'visible');
-				
-				//Paint clock circle				
+
+				//Paint clock circle
 				ctx.clearRect(0, 0, canvasSize, canvasSize);
 				ctx.beginPath();
 				ctx.arc(clockCenterX, clockCenterY, clockRadius, 0, 2 * Math.PI, false);
 				ctx.fillStyle = settings.colors.clockFaceColor;
 				ctx.fill();
-				
+
 				//Paint hover (if available)
 				if (!isMobile() && hoverMinute) {
 					if (hoverMinute == 60) hoverMinute = 0;
@@ -931,7 +927,7 @@
 						ctx.fill();
 					}
 				}
-				
+
 				//Paint minute selector
 				ctx.beginPath();
 				ctx.arc(clockCenterX, clockCenterY, 3, 0, 2 * Math.PI, false);
@@ -952,7 +948,7 @@
 					ctx.fillStyle = settings.colors.selectorColor;
 					ctx.fill();
 				}
-				
+
 				//Paint minute numbers 00 - 55
 				ctx.font = settings.fonts.clockOuterCircleFontSize + 'px ' + settings.fonts.fontFamily;
 				for(i = 1; i <= 12; i++) {
@@ -967,11 +963,17 @@
 					if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (negative ? '-' : '') + hour + ':' + s)) isMinMaxFullfilled = false;
 					if (isMinMaxFullfilled) {
 						ctx.fillText(s,
-								 clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
-								 clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
+							clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
+					}
+					else if (!settings.hideUnselectableNumbers) {
+						ctx.fillStyle = settings.colors.clockOuterCircleUnselectableTextColor;
+						ctx.fillText(s,
+							clockCenterX + Math.cos(angle) * clockOuterRadius - (ctx.measureText(s).width / 2),
+							clockCenterY + Math.sin(angle) * clockOuterRadius + (settings.fonts.clockOuterCircleFontSize / 3));
 					}
 				}
-				
+
 				//For numbers not dividable by 5 paint a little white dot in the selector circle
 				if (min > -1 && min % 5 != 0) {
 					ctx.beginPath();
@@ -981,21 +983,21 @@
 					ctx.fillStyle = 'white';
 					ctx.fill();
 				}
-				
+
 				if (settings.duration && settings.durationNegative) repaintSignButton(ctx, hoverSign);
 			}
-			
-			
+
+
 			/************************************************************************************************
 			  ADJUST POPUP DIMENSION AND POSITION (FOR MOBILE PHONES)
-			 ************************************************************************************************/	
+			 ************************************************************************************************/
 			function adjustMobilePopupDimensionAndPosition() {
 
 				var popupHeight;
-				
+
 				//Landscape mode
 				if (window.innerHeight < 400) {
-					popupWidth = window.innerHeight - 60;					
+					popupWidth = window.innerHeight - 60;
 					popup.css('width', popupWidth + 200 + 'px');
 					inputElement.css('position', 'absolute')
 								.css('left', '0px')
@@ -1016,11 +1018,11 @@
 					canvasHolder.css('margin', '10px 25px 10px 25px');
 					popupHeight = popupWidth + parseInt(canvasHolder.css('margin-top')) + parseInt(canvasHolder.css('margin-bottom')) + 65;
 				}
-				
-				//Align popup in the middle of the screen				
+
+				//Align popup in the middle of the screen
 				popup.css('left', parseInt(($('body').prop('clientWidth') - popup.outerWidth()) / 2) + 'px');
-				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');				
-				
+				popup.css('top', parseInt((window.innerHeight - popupHeight) / 2) + 'px');
+
 				canvasSize = popupWidth - 50;
 				clockRadius = parseInt(canvasSize / 2);
 				clockCenterX = parseInt(canvasSize / 2);
@@ -1032,16 +1034,16 @@
 				clockHourCanvas.attr('width', canvasSize);
 				clockHourCanvas.attr('height', canvasSize);
 				clockMinuteCanvas.attr('width', canvasSize);
-				clockMinuteCanvas.attr('height', canvasSize);				
+				clockMinuteCanvas.attr('height', canvasSize);
 			}
-			
-			
+
+
 			/************************************************************************************************
 			  SHOWS THE TIME PICKER
-			 ************************************************************************************************/	
+			 ************************************************************************************************/
 			function showTimePicker() {
 				if (!element.val()) inputElement.val(formatTime('00:00'));
-				else inputElement.val(element.val());
+				else inputElement.val(formatTime(element.val()));
 				if (!isMobile() && settings.onlyShowClockOnMobile) popup.css('visibility', 'hidden');
 				if (isMobile()) adjustMobilePopupDimensionAndPosition();
 				popup.css('display', 'block');
@@ -1075,13 +1077,13 @@
 				}
 				settings.onOpen.call(element.get(0));
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  HIDES THE TIME PICKER
 			 ************************************************************************************************/
-			function hideTimePicker() {				
+			function hideTimePicker() {
 				var newValue = formatTime(element.val());
 				enteredDigits = '';
 				popup.css('display', 'none');
@@ -1105,14 +1107,14 @@
 						evt.eventType = 'click';
 						element.get(0).fireEvent('onchange', evt);
 					}
-					settings.onChange.call(element.get(0), newValue, oldValue);
+					settings.onChange.call(element.get(0), newValue.replace(/^\+/, ''), oldValue.replace(/^\+/, ''));
 					oldValue = newValue;
 				}
 				settings.onClose.call(element.get(0));
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  SWITCH FROM MINUTE SELECTION MODE TO HOUR SELECTION MODE
 			 ************************************************************************************************/
@@ -1137,9 +1139,9 @@
 				selectionMode = 'HOUR';
 				settings.onModeSwitch.call(element.get(0), selectionMode);
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  SWITCH FROM HOUR SELECTION MODE TO MINUTE SELECTION MODE
 			 ************************************************************************************************/
@@ -1150,7 +1152,7 @@
 				clockMinuteCanvas.stop().css('display', 'block')
 										.css('zoom', '80%')
 										.css('left', '10%')
-										.css('top', '10%')										
+										.css('top', '10%')
 										.css('opacity', 0)
 										.css('zIndex', 1);
 				if (surpressAnimation) {
@@ -1165,9 +1167,9 @@
 				selectionMode = 'MINUTE';
 				settings.onModeSwitch.call(element.get(0), selectionMode);
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  SELECT HOUR ON INPUT ELEMENT
 			 ************************************************************************************************/
@@ -1177,43 +1179,43 @@
 					inputElement.get(0).setSelectionRange(0, inputElement.val().indexOf(settings.separator));
 				}, 1);
 			}
-			
 
-			
+
+
 			/************************************************************************************************
 			  SELECT MINUTE ON INPUT ELEMENT
 			 ************************************************************************************************/
 			function selectMinuteOnInputElement() {
 				inputElement.focus();
-				setTimeout(function() {						
+				setTimeout(function() {
 					inputElement.get(0).setSelectionRange(inputElement.val().indexOf(settings.separator) + 1, inputElement.val().length);
 				}, 1);
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  AUTOSIZE INPUT ELEMENT
 			 ************************************************************************************************/
 			function autosize() {
 				if (!settings.autosize || isMobile()) return;
 				tempAutosizeElement.html(element.val());
-				tempAutosizeElement.css('display', 'inline-block');				
+				tempAutosizeElement.css('display', 'inline-block');
 				element.css('width', tempAutosizeElement.outerWidth() + 5 + parseInt(element.css('padding-left')) + parseInt(element.css('padding-right')) + 'px');
 				tempAutosizeElement.css('display', 'none');
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  FORMATS THE TIME
-			 ************************************************************************************************/	
+			 ************************************************************************************************/
 			function formatTime(time) {
 				if (time == '') {
 					if (settings.required) return settings.duration ? '0:00' : '00:00';
 					else return time;
 				}
-				if ((new RegExp('^(-)?([0-9]+)(.([0-9]{1,2})?)?$', 'i')).test(time)) {
+				if ((new RegExp('^(-|\\+)?([0-9]+)(.([0-9]{1,2})?)?$', 'i')).test(time)) {
 					var hour = parseInt(RegExp.$2);
 					var min = parseInt(RegExp.$4);
 					if (!min) min = 0;
@@ -1227,7 +1229,7 @@
 					}
 					time = (negative ? '-' : '') + (hour < 10 && !settings.duration ? '0' : '') + hour + settings.separator + (RegExp.$3 ? (min < 10 ? '0' : '') + min : '00');
 				}
-				else if ((new RegExp('^(-)?.([0-9]{1,2})')).test(time)) {
+				else if ((new RegExp('^(-|\\+)?.([0-9]{1,2})')).test(time)) {
 					var min = parseInt(RegExp.$2);
 					var negative = settings.duration && settings.durationNegative && RegExp.$1 == '-' ? true : false;
 					if (min >= 60) min = min % 60;
@@ -1236,11 +1238,11 @@
 				else {
 					time = '0' + (!settings.duration ? '0' : '') + settings.separator + '00';
 				}
-				return time;
+				return (settings.duration && settings.useDurationPlusSign && !time.match(/^\-/) && !time.match(/^0+:00$/) ? '+' : '') + time;
 			}
-			
-			
-			
+
+
+
 			/************************************************************************************************
 			  DISPOSES AN INITIALIZED CLOCK TIME PICKER
 			 ************************************************************************************************/
@@ -1254,7 +1256,7 @@
 				element.off('keyup.clockTimePicker');
 				element.off('keydown.clockTimePicker');
 				element.off('mousewheel.clockTimePicker');
-				element.off('focus.clockTimePicker');				
+				element.off('focus.clockTimePicker');
 				if (element.attr('data-autocomplete-orig')) {
 					element.attr('autocomplete', element.attr('data-autocomplete-orig'));
 					element.removeAttr('data-autocomplete-orig');
@@ -1271,18 +1273,18 @@
 					element.attr('spellcheck', element.attr('data-spellcheck-orig'));
 					element.removeAttr('data-spellcheck-orig');
 				} else element.removeAttr('spellcheck');
-			}	
-			
-			
-			
+			}
+
+
+
 			/************************************************************************************************
 			  ELEMENT EVENTS
 			 ************************************************************************************************/
 			function onInputElementMouseWheel(event) {
 				if (element.is(":focus")) processMouseWheelEvent(event);
 			}
-			
-			
+
+
 			function onInputElementFocus(event) {
 				if (isMobile()) {
 					showTimePicker();
@@ -1294,15 +1296,15 @@
 					}, 50);
 				}
 			}
-			
-			
+
+
 			function onInputElementDragSelectContextMenu(event) {
 				event.stopImmediatePropagation();
 				event.preventDefault();
 				return false;
 			}
-			
-			
+
+
 			function onInputElementMouseDown(event) {
 				processClick(event);
 				event.stopImmediatePropagation();
@@ -1310,8 +1312,8 @@
 				event.preventDefault();
 				return false;
 			}
-			
-			
+
+
 			function onInputElementKeyDown(event) {
 				//TABULATOR
 				if (event.keyCode == 9) {
@@ -1323,7 +1325,7 @@
 				}
 				//ESC
 				else if (event.keyCode == 27) {
-					inputElement.val(oldValue);
+					inputElement.val(formatTime(oldValue));
 					hideTimePicker();
 				}
 				//BACKSPACE OR DELETE
@@ -1333,28 +1335,28 @@
 					var oldVal = inputElement.val();
 					var newVal;
 					event.preventDefault();
-					(new RegExp('^(-)?([0-9]+)(.([0-9]{1,2}))?$')).test(inputElement.val());
+					(new RegExp('^(-|\\+)?([0-9]+)(.([0-9]{1,2}))?$')).test(inputElement.val());
 					var negative = settings.duration && settings.durationNegative && RegExp.$1 == '-' ? true : false;
 					var h = parseInt(RegExp.$2);
 					var m = RegExp.$4 ? parseInt(RegExp.$4) : 0;
 					if (selectionMode == 'HOUR') {
 						if (h == 0) {
-							newVal = settings.required ? (!settings.duration ? '0' : '') +'0' + settings.separator + '00' : '';							
+							newVal = settings.required ? (!settings.duration ? '0' : '') +'0' + settings.separator + '00' : '';
 						} else {
 							newVal = (!settings.duration ? '0' : '') + '0' + settings.separator + (m < 10 ? '0' : '') + m;
 						}
-						inputElement.val(newVal);
+						inputElement.val(formatTime(newVal));
 						if (!newVal) {
 							hideTimePicker();
 						} else {
 							selectHourOnInputElement();
 						}
-						if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
+						if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 					} else {
 						if (m == 0) {
 							if (h == 0 && !settings.required) {
 								inputElement.val('');
-								if (oldVal != '') settings.onAdjust.call(element.get(0), '', oldVal);
+								if (oldVal != '') settings.onAdjust.call(element.get(0), '', oldVal.replace(/^\+/, ''));
 								hideTimePicker();
 							} else {
 								switchToHourMode();
@@ -1362,9 +1364,9 @@
 							}
 						} else {
 							newVal = (negative ? '-' : '') + (h < 10 && !settings.duration ? '0' : '') + h + settings.separator + '00';
-							inputElement.val(newVal);
+							inputElement.val(formatTime(newVal));
 							selectMinuteOnInputElement();
-							if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
+							if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 						}
 					}
 					autosize();
@@ -1408,7 +1410,7 @@
 					event.preventDefault();
 					if (oldValue == '') return;
 					var oldVal = inputElement.val();
-					(new RegExp('^(-)?([0-9]+)(.([0-9]{1,2}))?$')).test(inputElement.val());
+					(new RegExp('^(-|\\+)?([0-9]+)(.([0-9]{1,2}))?$')).test(inputElement.val());
 					var negative = settings.duration && settings.durationNegative && RegExp.$1 == '-' ? true : false;
 					var h = parseInt(RegExp.$2);
 					if (negative) h = -h;
@@ -1418,7 +1420,7 @@
 							if (h < 0) h = -h;
 							negative = false;
 						}
-						else {							
+						else {
 							if (h > 0) h = -h;
 							negative = true;
 						}
@@ -1429,7 +1431,7 @@
 							if (settings.duration && settings.durationNegative && h == 0 && negative) negative = false;
 							else h += 1;
 						}
-						else {							
+						else {
 							if (settings.duration && settings.durationNegative && h == 0 && !negative) negative = true;
 							else h -= 1;
 						}
@@ -1455,8 +1457,8 @@
 						isMinMaxFullfilled = true;
 					}
 					if (isMinMaxFullfilled) {
-						inputElement.val(newVal);
-						if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
+						inputElement.val(formatTime(newVal));
+						if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 						autosize();
 						repaintClock();
 						if (selectionMode == 'HOUR') selectHourOnInputElement();
@@ -1470,8 +1472,8 @@
 					return false;
 				}
 			}
-			
-			
+
+
 			function onInputElementKeyUp(event) {
 				//on entering digits...
 				if (((event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105)) && !event.shiftKey && !event.ctrlKey && !event.altKey) {
@@ -1480,7 +1482,7 @@
 					var isNegative = inputElement.val()[0] == '-';
 					var oldVal = inputElement.val();
 					var newVal;
-					
+
 					//entering first digit...
 					if (enteredDigits == '') {
 						enteredDigits = event.key;
@@ -1490,7 +1492,7 @@
 							if (settings.maximum) {
 								if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
 									newVal = settings.maximum.substring(0, settings.maximum.indexOf(':')) + settings.separator + minPart;
-									if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {											
+									if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
 										newVal = settings.maximum;
 									}
 									newVal = formatTime(newVal);
@@ -1502,7 +1504,7 @@
 							if (settings.minimum) {
 								if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {
 									newVal = settings.minimum.substring(0, settings.minimum.indexOf(':')) + settings.separator + minPart;
-									if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {											
+									if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {
 										newVal = settings.minimum;
 									}
 									newVal = formatTime(newVal);
@@ -1510,9 +1512,9 @@
 								} else if (!isTimeSmallerOrEquals(settings.minimum, (isNegative ? '-' : '') + enteredDigits + '0' + settings.separator + minPart)) {
 									switchToMinutes = true;
 								}
-							}							
-							inputElement.val(newVal);
-							
+							}
+							inputElement.val(formatTime(newVal));
+
 							var switchToMinutes = (!settings.duration && parseInt(event.key) > 2) || (settings.maximum && !isTimeSmallerOrEquals((isNegative ? '-' : '') + parseInt(event.key) + '0:00', settings.maximum)) || (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (isNegative ? '-' : '') + parseInt(event.key) + '0:00'));
 							if (switchToMinutes) {
 								enteredDigits = '';
@@ -1559,7 +1561,7 @@
 							}
 						}
 					}
-					
+
 					//entering second digit...
 					else {
 						if (!settings.duration) {
@@ -1570,7 +1572,7 @@
 								if (number == topNumber) {
 									enteredDigits = '';
 									newVal = '00' + settings.separator + minPart;
-									inputElement.val(newVal);
+									inputElement.val(formatTime(newVal));
 									if (settings.precision == 60) {
 										hideTimePicker();
 									} else {
@@ -1581,12 +1583,12 @@
 								else if (number > topNumber) {
 									enteredDigits = event.key;
 									newVal = '0' + enteredDigits + settings.separator + minPart;
-									inputElement.val(newVal);
+									inputElement.val(formatTime(newVal));
 									selectHourOnInputElement();
 								}
 								else {
 									newVal = enteredDigits + event.key + settings.separator + minPart;
-									inputElement.val(newVal);
+									inputElement.val(formatTime(newVal));
 									if (settings.precision == 60) {
 										hideTimePicker();
 									} else {
@@ -1599,16 +1601,16 @@
 							//Second digit in minute mode (for normal clock)
 							else {
 								newVal = hourPart + settings.separator + enteredDigits + event.key;
-								inputElement.val(newVal);
+								inputElement.val(formatTime(newVal));
 								hideTimePicker();
 							}
 						} else {
-							
+
 							if (enteredDigits == '0') enteredDigits = '';
-							
+
 							//Second digit in minute mode (for duration)
 							if (selectionMode == 'MINUTE') {
-								newVal = hourPart + settings.separator + enteredDigits + event.key;
+								newVal = formatTime(hourPart + settings.separator + enteredDigits + event.key);
 								if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) {
 									newVal = formatTime(settings.maximum);
 									inputElement.val(newVal);
@@ -1632,7 +1634,7 @@
 								if (settings.maximum) {
 									if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
 										newVal = settings.maximum.substring(0, settings.maximum.indexOf(':')) + settings.separator + minPart;
-										if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {											
+										if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
 											newVal = settings.maximum;
 										}
 										newVal = formatTime(newVal);
@@ -1644,7 +1646,7 @@
 								if (settings.minimum) {
 									if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {
 										newVal = settings.minimum.substring(0, settings.minimum.indexOf(':')) + settings.separator + minPart;
-										if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {											
+										if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {
 											newVal = settings.minimum;
 										}
 										newVal = formatTime(newVal);
@@ -1653,7 +1655,7 @@
 										switchToMinutes = true;
 									}
 								}
-								inputElement.val(newVal);								
+								inputElement.val(formatTime(newVal));
 								if (!switchToMinutes) {
 									selectHourOnInputElement();
 								} else {
@@ -1668,38 +1670,71 @@
 							}
 						}
 					}
-					if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal, oldVal);
+					if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 					autosize();
 				}
 				repaintClock();
 			}
-			
+
 		});
-				
+
 		/************************************************************************************************
 		  CHECKS IF THE DEVICE IS A MOBILE
-		 ************************************************************************************************/	
+		 ************************************************************************************************/
 		function isMobile() {
 			var check = false;
 			(function(a){if(/(android|bb\d+|meego).+mobile|avantgo|bada\/|blackberry|blazer|compal|elaine|fennec|hiptop|iemobile|ip(hone|od)|iris|kindle|lge |maemo|midp|mmp|mobile.+firefox|netfront|opera m(ob|in)i|palm( os)?|phone|p(ixi|re)\/|plucker|pocket|psp|series(4|6)0|symbian|treo|up\.(browser|link)|vodafone|wap|windows ce|xda|xiino/i.test(a)||/1207|6310|6590|3gso|4thp|50[1-6]i|770s|802s|a wa|abac|ac(er|oo|s\-)|ai(ko|rn)|al(av|ca|co)|amoi|an(ex|ny|yw)|aptu|ar(ch|go)|as(te|us)|attw|au(di|\-m|r |s )|avan|be(ck|ll|nq)|bi(lb|rd)|bl(ac|az)|br(e|v)w|bumb|bw\-(n|u)|c55\/|capi|ccwa|cdm\-|cell|chtm|cldc|cmd\-|co(mp|nd)|craw|da(it|ll|ng)|dbte|dc\-s|devi|dica|dmob|do(c|p)o|ds(12|\-d)|el(49|ai)|em(l2|ul)|er(ic|k0)|esl8|ez([4-7]0|os|wa|ze)|fetc|fly(\-|_)|g1 u|g560|gene|gf\-5|g\-mo|go(\.w|od)|gr(ad|un)|haie|hcit|hd\-(m|p|t)|hei\-|hi(pt|ta)|hp( i|ip)|hs\-c|ht(c(\-| |_|a|g|p|s|t)|tp)|hu(aw|tc)|i\-(20|go|ma)|i230|iac( |\-|\/)|ibro|idea|ig01|ikom|im1k|inno|ipaq|iris|ja(t|v)a|jbro|jemu|jigs|kddi|keji|kgt( |\/)|klon|kpt |kwc\-|kyo(c|k)|le(no|xi)|lg( g|\/(k|l|u)|50|54|\-[a-w])|libw|lynx|m1\-w|m3ga|m50\/|ma(te|ui|xo)|mc(01|21|ca)|m\-cr|me(rc|ri)|mi(o8|oa|ts)|mmef|mo(01|02|bi|de|do|t(\-| |o|v)|zz)|mt(50|p1|v )|mwbp|mywa|n10[0-2]|n20[2-3]|n30(0|2)|n50(0|2|5)|n7(0(0|1)|10)|ne((c|m)\-|on|tf|wf|wg|wt)|nok(6|i)|nzph|o2im|op(ti|wv)|oran|owg1|p800|pan(a|d|t)|pdxg|pg(13|\-([1-8]|c))|phil|pire|pl(ay|uc)|pn\-2|po(ck|rt|se)|prox|psio|pt\-g|qa\-a|qc(07|12|21|32|60|\-[2-7]|i\-)|qtek|r380|r600|raks|rim9|ro(ve|zo)|s55\/|sa(ge|ma|mm|ms|ny|va)|sc(01|h\-|oo|p\-)|sdk\/|se(c(\-|0|1)|47|mc|nd|ri)|sgh\-|shar|sie(\-|m)|sk\-0|sl(45|id)|sm(al|ar|b3|it|t5)|so(ft|ny)|sp(01|h\-|v\-|v )|sy(01|mb)|t2(18|50)|t6(00|10|18)|ta(gt|lk)|tcl\-|tdg\-|tel(i|m)|tim\-|t\-mo|to(pl|sh)|ts(70|m\-|m3|m5)|tx\-9|up(\.b|g1|si)|utst|v400|v750|veri|vi(rg|te)|vk(40|5[0-3]|\-v)|vm40|voda|vulc|vx(52|53|60|61|70|80|81|83|85|98)|w3c(\-| )|webc|whit|wi(g |nc|nw)|wmlb|wonu|x700|yas\-|your|zeto|zte\-/i.test(a.substr(0,4))) check = true;})(navigator.userAgent||navigator.vendor||window.opera);
 			return check;
 		}
-		
+
 		/************************************************************************************************
 		  FUNCTION TO COMPARE TWO TIMES
 		 ************************************************************************************************/
-		function isTimeSmallerOrEquals(time1, time2) {
-			var regex = '^(-)?([0-9]+)(.([0-9]{1,2}))?$';
+		function isTimeSmallerOrEquals(time1, time2, doNotInvolveMinutePart) {
+			var regex = '^(-|\\+)?([0-9]+)(.([0-9]{1,2}))?$';
 			(new RegExp(regex, 'i')).test(time1);
 			var t1 = parseInt(RegExp.$2) * 60;
-			if (RegExp.$4) t1 += parseInt(RegExp.$4);
+			if (RegExp.$4 && !doNotInvolveMinutePart) t1 += parseInt(RegExp.$4);
 			if (RegExp.$1 == '-') t1 *= -1;
 			(new RegExp(regex, 'i')).test(time2);
 			var t2 = parseInt(RegExp.$2) * 60;
-			if (RegExp.$4) t2 += parseInt(RegExp.$4);
+			if (RegExp.$4 && !doNotInvolveMinutePart) t2 += parseInt(RegExp.$4);
 			if (RegExp.$1 == '-') t2 *= -1;
 			if (t1 <= t2) return true;
 			else return false;
 		}
-	};	
+
+		function validateSettings() {
+			settings.precision = parseInt(settings.precision);
+			settings.modeSwitchSpeed = parseInt(settings.modeSwitchSpeed);
+			settings.popupWidthOnDesktop = parseInt(settings.popupWidthOnDesktop);
+			settings.fonts.clockOuterCircleFontSize = parseInt(settings.fonts.clockOuterCircleFontSize);
+			settings.fonts.clockInnerCircleFontSize = parseInt(settings.fonts.clockInnerCircleFontSize);
+			settings.fonts.buttonFontSize = parseInt(settings.fonts.buttonFontSize);
+
+			if (settings.precision != 1 && settings.precision != 5 && settings.precision != 10 && settings.precision != 15 && settings.precision != 30 && settings.precision != 60) {
+				console.error('%c[jquery-clock-timepicker] Invalid precision specified: ' + settings.precision + '! Precision has to be 1, 5, 10, 15, 30 or 60. For now, the precision has been set back to: 1', 'color:orange');
+				settings.precision = 1;
+			}
+			if (!settings.separator || ('' + settings.separator).match(/[0-9]+/)) {
+				console.error('%c[jquery-clock-timepicker] Invalid separator specified: ' + (settings.separator ? settings.separator : '(empty)') + '! The separator cannot be empty nor can it contain any decimals. For now, the separator has been set back to a colon (:).', 'color:orange');
+				settings.separator = ':';
+			}
+			if (settings.durationNegative && !settings.duration) {
+				console.log('%c[jquery-clock-timepicker] durationNegative is set to true, but this has no effect because duration is false!', 'color:orange');
+			}
+			if (settings.maximum && !settings.maximum.match(/^-?[0-9]+:[0-9]{2}$/)) {
+				console.log('%c[jquery-clock-timepicker] Invalid time format for option "maximum": ' + settings.maximum + '! Maximum not used...', 'color:orange');
+				settings.maximum = null;
+			}
+			if (settings.minimum && !settings.minimum.match(/^-?[0-9]+:[0-9]{2}$/)) {
+				console.log('%c[jquery-clock-timepicker] Invalid time format for option "minimum": ' + settings.minimum + '! Minimum not used...', 'color:orange');
+				settings.minimum = null;
+			}
+			if (settings.minimum && settings.maximum && (settings.minimum == settings.maximum || !isTimeSmallerOrEquals(settings.minimum, settings.maximum))) {
+				console.log('%c[jquery-clock-timepicker] Option "minimum" must be smaller than the option "maximum"!', 'color:orange');
+				settings.minimum = null;
+			}
+		}
+	};
 }(jQuery));
