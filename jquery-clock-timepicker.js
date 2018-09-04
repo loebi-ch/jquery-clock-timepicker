@@ -1,7 +1,7 @@
 /* 
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.3.0
+ * Version: 2.3.1
  */
  (function($) {
 	 
@@ -94,7 +94,6 @@
 			var dataOptions = {}, _data = element.data();
 			for (var dataOption in _data) {
 				if (settings.hasOwnProperty(dataOption)) {
-					console.log(dataOption + ' = ' + _data[dataOption]);
 					settings[dataOption] = _data[dataOption];
 				}
 			}
@@ -1474,7 +1473,7 @@
 				//on entering digits...
 				if (((event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105)) && !event.shiftKey && !event.ctrlKey && !event.altKey) {
 					var hourPart = inputElement.val().replace(/.[0-9]+$/, '');
-					var minPart = inputElement.val().replace(/^-?[0-9]+./, '');
+					var minPart = inputElement.val().replace(/^(\+|-)?[0-9]+./, '');
 					var isNegative = inputElement.val()[0] == '-';
 					var oldVal = inputElement.val();
 					var newVal;

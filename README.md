@@ -242,6 +242,10 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.3.1**  
+- Bugfix for entering durations with keyboard when ```useDurationPlusSign``` is set to ```true```  
+- Removed unwanted Console.log  
+
 **Version 2.3.0**  
 - Issue #15 solved.  
 - Feature request #17 implemented: Showing unselectable numbers when using ```minimum``` and ```maximum``` options.  
