@@ -10,7 +10,7 @@ A free jQuery Plug-in to select the time with a clock inspired by the Android ti
 
 Requirements
 ------------
-* [jQuery](http://jquery.com/)
+* [jQuery](http://jquery.com/)/master
 
 
 Installation
@@ -154,18 +154,6 @@ The font size of the numbers that are displayed in the outer circle.
 The font family used to display the numbers.  
 *default: 'Arial'*
 
-- **fonts.buttonFontFamily**  
-The font family used for the "Cancel" and "OK" buttons on mobile devices.  
-*default: 'Arial'*
-
-- **fonts.inputFontFamily**  
-The font family used for the time indicator on mobile devices.
-*default: 'Arial'*
-
-- **fonts.generalFontFamily**  
-The general font family. *Caution*: Overrides overrides fontFamily, buttonFontFamily and inputFontFamily.
-*default: none*
-
 - **hideUnselectableNumbers**  
 Set this option to true if you want to completely hide the unselectable numbers (in case you're using ```minimum``` and ```maximum``` option).  
 *default: false*
@@ -253,6 +241,10 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 
 Changelog
 ---------
+
+**Version 2.3.1**  
+- Bugfix for entering durations with keyboard when ```useDurationPlusSign``` is set to ```true```  
+- Removed unwanted Console.log  
 
 **Version 2.3.0**  
 - Issue #15 solved.  
