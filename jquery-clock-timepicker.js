@@ -35,9 +35,7 @@
 				fontFamily: 'Arial',
 				clockOuterCircleFontSize: 14,
 				clockInnerCircleFontSize: 12,
-				buttonFontFamily: 'Arial',
-				buttonFontSize: 20,
-				inputFontFamily: 'Arial'
+				buttonFontSize: 20
 			},
 			hideUnselectableNumbers: false,
 			i18n: {
@@ -280,7 +278,6 @@
 							.css('border-radius', '0px')
 							.css('outline', '0px')
 							.css('fontSize', isMobile() ? '40px' : '20px')
-							.css('font-family', settings.fonts.inputFontFamily)
 							.css('margin', '0px')
 							.css('padding', '10px 0px')
 							.css('textAlign', 'center')
@@ -344,8 +341,7 @@
 				var buttonArea = $('<div>');
 				buttonArea.css('text-align', 'right')
 						  .css('padding', '15px 30px');
-				settings.fonts.buttonFontFamily = settings.fonts.buttonFontFamily.replace(/"/g, "&quot;").replace(/'/g, "&#039;");
-		        var buttonHtml = '<a style="text-decoration:none; color:' + settings.colors.buttonTextColor + '; font-family:' + settings.fonts.buttonFontFamily + '; font-size:' + settings.fonts.buttonFontSize + 'px; padding-left:30px">';
+				var buttonHtml = '<a style="text-decoration:none; color:' + settings.colors.buttonTextColor + '; font-family:Arial; font-size:' + settings.fonts.buttonFontSize + 'px; padding-left:30px">';
 				var cancelButton = $(buttonHtml);
 				cancelButton.html(settings.i18n.cancelButton);
 				cancelButton.on('click', function() {
