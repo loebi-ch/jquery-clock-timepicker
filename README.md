@@ -10,7 +10,7 @@ A free jQuery Plug-in to select the time with a clock inspired by the Android ti
 
 Requirements
 ------------
-* [jQuery](http://jquery.com/)/master
+* [jQuery](http://jquery.com/)
 
 
 Installation
