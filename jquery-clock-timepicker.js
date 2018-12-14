@@ -341,7 +341,8 @@
 				var buttonArea = $('<div>');
 				buttonArea.css('text-align', 'right')
 						  .css('padding', '15px 30px');
-				var buttonHtml = '<a style="text-decoration:none; color:' + settings.colors.buttonTextColor + '; font-family:Arial; font-size:' + settings.fonts.buttonFontSize + 'px; padding-left:30px">';
+				settings.fonts.fontFamily = settings.fonts.fontFamily.replace(/\"/g, "").replace(/\'/g, ""); //Prevents quotes in font to interfere
+				var buttonHtml = '<a style="text-decoration:none; color:' + settings.colors.buttonTextColor + '; font-family:' + settings.fonts.fontFamily + '; font-size:' + settings.fonts.buttonFontSize + 'px; padding-left:30px">';
 				var cancelButton = $(buttonHtml);
 				cancelButton.html(settings.i18n.cancelButton);
 				cancelButton.on('click', function() {
