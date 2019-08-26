@@ -1,22 +1,22 @@
 Clock Timepicker Plugin for jQuery
 ==================================
 
-<img src="http://plugins.slyweb.ch/jquery-clock-timepicker/screenshot.png" alt="jquery-clock-timepicker screenshot" />
+<img src="https://plugins.slyweb.ch/jquery-clock-timepicker/screenshot.png" alt="jquery-clock-timepicker screenshot" />
 
-[See a demo here](http://plugins.slyweb.ch/jquery-clock-timepicker)
+[See a demo here](https://plugins.slyweb.ch/jquery-clock-timepicker)
 
 A free jQuery Plug-in to select the time with a clock inspired by the Android time picker. This plugin works on Desktop and Mobile phones.
 
 
 Requirements
 ------------
-* [jQuery](http://jquery.com/)
+* [jQuery](https://jquery.com/)
 
 
 Installation
 ------------
 
-Install from [NPM](http://www.npmjs.com/package/jquery-clock-timepicker) as ```jquery-clock-timepicker```.
+Install from [NPM](https://www.npmjs.com/package/jquery-clock-timepicker) as ```jquery-clock-timepicker```.
 
 ```npm install jquery-clock-timepicker```
 
@@ -76,6 +76,10 @@ Options
 
 - **afternoonHoursInOuterCircle**  
 Set this option to true to display the afternoon hours in the outer circle instead of the inner circle.  
+*default: false*
+
+- **alwaysSelectHoursFirst**  
+By default, if you click on the minutes part of your input field, the popup is opened to directly select the minutes. If you set this option to true, popup is always opened to select hours first before selecting the minutes.  
 *default: false*
 
 - **autosize**  
@@ -241,6 +245,11 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 
 Changelog
 ---------
+
+**Version 2.3.2**  
+- Issue #22 fixed. Using div and spans instead of input element on mobile phones to prevent context menu and cursors to show up.  
+- Issue #23 fixed. Rounding problem on initialization solved when using option ```precision```.  
+- Issue #25 fixed. New option ```alwaysSelectHoursFirst``` inserted.  
 
 **Version 2.3.1**  
 - Bugfix for entering durations with keyboard when ```useDurationPlusSign``` is set to ```true```  
