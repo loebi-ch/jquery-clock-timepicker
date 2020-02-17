@@ -1,6 +1,6 @@
 {
 	"name": "jquery-clock-timepicker",
-	"version": "2.3.2",
+	"version": "2.3.3",
 	"author": {
 		"name": "Andreas Loeber",
 		"url": "https://github.com/loebi-ch"
@@ -20,7 +20,7 @@
 		"responsive",
 		"mobile"
 	],
-	"homepage": "http://github.com/loebi-ch/jquery-clock-timepicker",
+	"homepage": "https://github.com/loebi-ch/jquery-clock-timepicker",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1"
 	},

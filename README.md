@@ -222,10 +222,6 @@ If this option is set to true, a user cannot empty the field by hitting delete o
 The separator separating the hour and the minute parts.  
 *default: :*
 
-- **useAmPm**  
-(NOT IMPLEMENTED YET) Set to true, if you want to use the American/Canadian time with AM and PM.  
-*default: false*
-
 - **useDurationPlusSign**  
 If set to true, positive durations use the plus sign (+) as a prefix.  
 *default: false*
@@ -245,6 +241,10 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 
 Changelog
 ---------
+
+**Version 2.3.3**  
+- Issue #14 fixed by inserting code Yauheni-Butski proposed.  
+- Issue #28 fixed by changing code as proposed by Yauheni-Butski.  
 
 **Version 2.3.2**  
 - Issue #22 fixed. Using div and spans instead of input element on mobile phones to prevent context menu and cursors to show up.  

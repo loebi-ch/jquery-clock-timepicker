@@ -1,7 +1,7 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.3.2
+ * Version: 2.3.3
  */
  (function($) {
 
@@ -271,20 +271,6 @@
 			 ************************************************************************************************/
 			var inputElement = element;
 			if (isMobile()) {
-				/*inputElement = $('<input class="clock-timepicker-mobile-input" type="text">');
-				inputElement.css('display', 'inline-block')
-							.css('width', '100%')
-							.css('border', '0px')
-							.css('border-radius', '0px')
-							.css('outline', '0px')
-							.css('fontSize', isMobile() ? '40px' : '20px')
-							.css('margin', '0px')
-							.css('padding', '10px 0px')
-							.css('textAlign', 'center')
-							.css('color', settings.colors.popupHeaderTextColor)
-							.css('backgroundColor', settings.colors.popupHeaderBackgroundColor);
-				inputElement.prop('readonly', true);
-				popup.append(inputElement);*/
 
 				inputElement = $('<div class="clock-timepicker-mobile-time">');
 				inputElement.css('width', '100%')
@@ -485,8 +471,8 @@
 							else selectMinuteOnInputElement();
 							return;
 						}
-						processTimeSelection(x, y);
 						isDragging = true;
+						processTimeSelection(x, y);
 					});
 					canvas.on('touchend', function(event) {
 						event.preventDefault();
@@ -1045,10 +1031,23 @@
 				clockInnerRadius = clockOuterRadius - 29;
 				canvasHolder.css('width', canvasSize + 'px');
 				canvasHolder.css('height', canvasSize + 'px');
-				clockHourCanvas.attr('width', canvasSize);
-				clockHourCanvas.attr('height', canvasSize);
-				clockMinuteCanvas.attr('width', canvasSize);
-				clockMinuteCanvas.attr('height', canvasSize);
+				
+				var dpr = window.devicePixelRatio || 1;
+				var hourCanvas = clockHourCanvas.get(0);
+				var minuteCanvas = clockMinuteCanvas.get(0);
+				hourCanvas.width = canvasSize * dpr;
+				hourCanvas.height = canvasSize * dpr;
+				minuteCanvas.width = canvasSize * dpr;
+				minuteCanvas.height = canvasSize * dpr;
+				var hourCtx = hourCanvas.getContext('2d');
+				var minuteCtx = minuteCanvas.getContext('2d');
+				hourCtx.scale(dpr, dpr);
+				minuteCtx.scale(dpr, dpr);
+
+				clockHourCanvas.css('width', canvasSize);
+				clockHourCanvas.css('height', canvasSize);
+				clockMinuteCanvas.css('width', canvasSize);
+				clockMinuteCanvas.css('height', canvasSize);
 			}
 
 
