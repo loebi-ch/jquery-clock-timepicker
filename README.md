@@ -242,6 +242,11 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.3.4**  
+- Method ```onInputElementKeyUp``` completely refactored to simplify and to solve issue #21.  
+- Arrow keys and +/- sign behavior refactored. No wheelspin anymore, stop at ```minimum``` and ```maximum``` values.  
+- Bugfix for bluring input element when switching from one clock timepicker element to another one.  
+
 **Version 2.3.3**  
 - Issue #14 fixed by inserting code Yauheni-Butski proposed.  
 - Issue #28 fixed by changing code as proposed by Yauheni-Butski.  
@@ -341,4 +346,4 @@ Changelog
 
 - - -
 
-This software is made available under the open source MIT License. &copy; 2017 [Andreas Loeber](http://github.com/loebi-ch) and [contributors](https://github.com/loebi-ch/jquery-clock-timepicker/graphs/contributors)
+This software is made available under the open source MIT License. &copy; 2020 [Andreas Loeber](http://github.com/loebi-ch) and [contributors](https://github.com/loebi-ch/jquery-clock-timepicker/graphs/contributors)

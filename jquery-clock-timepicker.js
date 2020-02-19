@@ -1,7 +1,7 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.3.3
+ * Version: 2.3.4
  */
  (function($) {
 
@@ -370,7 +370,7 @@
 			  BLUR ALL
 			 ************************************************************************************************/
 			function blurAll() {
-				if (!$(document.activeElement).parents('.clock-timepicker').length) return;
+				if ($(document.activeElement).parents('.clock-timepicker').length) return;
 				var tmp = document.createElement("input");
 				element.parent().get(0).appendChild(tmp);
 				tmp.focus();
@@ -1432,60 +1432,63 @@
 						selectHourOnInputElement();
 					}
 				}
-				//ARROW UP OR DOWN, + OR -
-				else if (event.keyCode == 38 || event.keyCode == 40 || event.keyCode == 107 || event.keyCode == 109 || event.keyCode == 189 || (event.shiftKey && event.keyCode == 49)) {
+				//"+" SIGN
+				else if (event.key == '+' && settings.duration && settings.durationNegative) {
 					event.preventDefault();
-					if (oldValue == '') return;
 					var oldVal = getInputElementValue();
-					(new RegExp('^(-|\\+)?([0-9]+)(.([0-9]{1,2}))?$')).test(getInputElementValue());
-					var negative = settings.duration && settings.durationNegative && RegExp.$1 == '-' ? true : false;
-					var h = parseInt(RegExp.$2);
-					if (negative) h = -h;
-					var m = RegExp.$4 ? parseInt(RegExp.$4) : 0;
-					if (settings.duration && settings.durationNegative && (event.keyCode == 107 || event.keyCode == 109 || event.keyCode == 189 || (event.shiftKey && event.keyCode == 49))) {
-						if (event.keyCode == 107 || event.keyCode == 49) {
-							if (h < 0) h = -h;
-							negative = false;
-						}
-						else {
-							if (h > 0) h = -h;
-							negative = true;
-						}
-						enteredDigits = '';
-					}
-					else if (selectionMode == 'HOUR') {
-						if (event.keyCode == 38 || event.keyCode == 107 || event.keyCode == 49) {
-							if (settings.duration && settings.durationNegative && h == 0 && negative) negative = false;
-							else h += 1;
-						}
-						else {
-							if (settings.duration && settings.durationNegative && h == 0 && !negative) negative = true;
-							else h -= 1;
-						}
-						if (h == -1) {
-							if (!settings.duration) h = 23;
-							else if (!settings.durationNegative) h = 0;
-						}
-						if (h == 24 && !settings.duration) h = 0;
-					}
-					else {
-						if (event.keyCode == 38 || event.keyCode == 109 || event.keyCode == 189) m -= settings.precision;
-						else m += settings.precision;
-						if (m < 0) m = 60 + m;
-						if (m >= 60) m = m - 60;
-					}
-					var newVal = (h < 10 && !settings.duration ? '0': '') + (negative && h == 0 ? '-' + h : h) + settings.separator + (m < 10 ? '0' : '') + m;
-					var isMinMaxFullfilled = true;
-					if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) isMinMaxFullfilled = false;
-					if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) isMinMaxFullfilled = false;
-					if (!isMinMaxFullfilled && selectionMode == 'HOUR') {
-						if (event.keyCode == 38) newVal = formatTime(settings.maximum);
-						else newVal = formatTime(settings.minimum);
-						isMinMaxFullfilled = true;
-					}
-					if (isMinMaxFullfilled) {
+					if (oldVal[0] == '-') {
+						var newVal = oldVal.substring(1);
 						setInputElementValue(formatTime(newVal));
-						if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+						settings.onAdjust.call(element.get(0), newVal, oldVal);
+						autosize();
+						repaintClock();
+						if (selectionMode == 'HOUR') selectHourOnInputElement();
+						else selectMinuteOnInputElement();
+					}
+				}
+				//"-" SIGN
+				else if (event.key == '-' && settings.duration && settings.durationNegative) {
+					event.preventDefault();
+					var oldVal = getInputElementValue().replace(/^\+/, '');
+					if (oldVal[0] != '-') {
+						var newVal = '-' + oldVal;
+						setInputElementValue(formatTime(newVal));
+						settings.onAdjust.call(element.get(0), newVal, oldVal);
+						autosize();
+						repaintClock();
+						if (selectionMode == 'HOUR') selectHourOnInputElement();
+						else selectMinuteOnInputElement();
+					}
+				}
+				//ARROW UP OR "+" SIGN, ARROW DOWN OR "-" SIGN
+				else if (event.keyCode == 38 || event.key == '+' || event.keyCode == 40 || event.key == '-') {
+					event.preventDefault();
+					var oldVal = getInputElementValue();
+					(new RegExp('^(-|\\+)?([0-9]+)(.([0-9]{1,2}))?$')).test(oldVal);
+					var h = parseInt(RegExp.$2);
+					if (settings.duration && settings.durationNegative && RegExp.$1 == '-') h = -h;
+					var m = RegExp.$4 ? parseInt(RegExp.$4) : 0;
+					if (selectionMode == 'HOUR') h += event.keyCode == 38 || event.key == '+' ? 1 : -1;
+					else {
+						m += (event.keyCode == 38 || event.key == '+' ? 1 : -1) * settings.precision;
+						if (m < 0) m = 0;
+						else if (m > 59) m = 60 - settings.precision;
+					}
+					var min = settings.minimum;
+					if ((!settings.duration || !settings.durationNegative) && min[0] == '-') min = '0:00';
+					var max = settings.maximum;
+					if (settings.precision != 1) {
+						var minPart = parseInt(max.replace(/^(\+|-)?[0-9]+./, ''));
+						max = max.replace(/.[0-9]+$/, '') + settings.separator + (minPart - (minPart % settings.precision));
+					}
+					var newVal = (h < 0 ? '-' : '') + (h < 10 && !settings.duration ? '0': '') + Math.abs(h) + settings.separator + (m < 10 ? '0' : '') + m;
+					if (selectionMode == 'HOUR') {
+						if (!isTimeSmallerOrEquals(newVal, max)) newVal = max;
+						else if (!isTimeSmallerOrEquals(min, newVal)) newVal = min;
+					}
+					if (oldVal != newVal) {
+						setInputElementValue(formatTime(newVal));
+						settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 						autosize();
 						repaintClock();
 						if (selectionMode == 'HOUR') selectHourOnInputElement();
@@ -1502,206 +1505,42 @@
 
 
 			function onInputElementKeyUp(event) {
-				//on entering digits...
-				if (((event.keyCode >= 48 && event.keyCode <= 57) || (event.keyCode >= 96 && event.keyCode <= 105)) && !event.shiftKey && !event.ctrlKey && !event.altKey) {
-					var hourPart = getInputElementValue().replace(/.[0-9]+$/, '');
-					var minPart = getInputElementValue().replace(/^(\+|-)?[0-9]+./, '');
-					var isNegative = getInputElementValue()[0] == '-';
-					var oldVal = getInputElementValue();
-					var newVal;
-
-					//entering first digit...
-					if (enteredDigits == '') {
-						enteredDigits = event.key;
-						//First digit in hour mode
-						if (selectionMode == 'HOUR') {
-							newVal = formatTime((isNegative ? '-' : '') + (!settings.duration ? '0' : '') + event.key + settings.separator + minPart);
-							if (settings.maximum) {
-								if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
-									newVal = settings.maximum.substring(0, settings.maximum.indexOf(':')) + settings.separator + minPart;
-									if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
-										newVal = settings.maximum;
-									}
-									newVal = formatTime(newVal);
-									switchToMinutes = true;
-								} else if (!isTimeSmallerOrEquals((isNegative ? '-' : '') + enteredDigits + '0' + settings.separator + minPart, settings.maximum)) {
-									switchToMinutes = true;
-								}
-							}
-							if (settings.minimum) {
-								if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {
-									newVal = settings.minimum.substring(0, settings.minimum.indexOf(':')) + settings.separator + minPart;
-									if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {
-										newVal = settings.minimum;
-									}
-									newVal = formatTime(newVal);
-									switchToMinutes = true;
-								} else if (!isTimeSmallerOrEquals(settings.minimum, (isNegative ? '-' : '') + enteredDigits + '0' + settings.separator + minPart)) {
-									switchToMinutes = true;
-								}
-							}
-							setInputElementValue(formatTime(newVal));
-
-							var switchToMinutes = (!settings.duration && parseInt(event.key) > 2) || (settings.maximum && !isTimeSmallerOrEquals((isNegative ? '-' : '') + parseInt(event.key) + '0:00', settings.maximum)) || (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, (isNegative ? '-' : '') + parseInt(event.key) + '0:00'));
-							if (switchToMinutes) {
-								enteredDigits = '';
-								if (settings.precision == 60) {
-									hideTimePicker();
-								} else {
-									switchToMinuteMode();
-									selectMinuteOnInputElement();
-								}
-							} else {
-								selectHourOnInputElement();
-							}
+				if (event.shiftKey || event.ctrlKey || event.altKey || !event.key.match(/^[0-9]{1}$/)) return;
+				var hourPart = getInputElementValue().replace(/.[0-9]+$/, '');
+				var minPart = getInputElementValue().replace(/^(\+|-)?[0-9]+./, '');
+				var isNegative = getInputElementValue()[0] == '-';
+				var oldVal = getInputElementValue();
+				enteredDigits += event.key;
+				var newVal = (selectionMode == 'HOUR' ? (isNegative ? '-' : '') + (!settings.duration && enteredDigits.length == 1 ? '0' : '') + enteredDigits : hourPart) + settings.separator + (selectionMode == 'HOUR' ? minPart : (enteredDigits.length == 1 ? '0' : '') + enteredDigits);
+				if (isTimeSmallerOrEquals(newVal, settings.minimum)) newVal = settings.minimum;
+				if (isTimeSmallerOrEquals(settings.maximum, newVal)) newVal = settings.maximum;
+				newVal = formatTime(newVal);
+				setInputElementValue(newVal);
+				var nextPossibleVal = (selectionMode == 'HOUR' ? (isNegative ? '-' : '') + (enteredDigits + '0') : hourPart) + settings.separator + (selectionMode == 'HOUR' ? '00' : (enteredDigits + '0'));
+				if ((selectionMode == 'MINUTE' && (enteredDigits.length == 2 || parseInt(enteredDigits + '0') >= 60)) || (selectionMode == 'HOUR' && !settings.duration && enteredDigits.length == 2) || (isNegative ? !isTimeSmallerOrEquals(settings.minimum, nextPossibleVal) : !isTimeSmallerOrEquals(nextPossibleVal, settings.maximum))) {
+					enteredDigits = '';
+					if (selectionMode == 'HOUR') {
+						if (settings.precision == 60 || (newVal == settings.maximum && settings.maximum.match(/00$/)) || (settings.minimum[0] == '-' && newVal == settings.minimum && settings.minimum.match(/00$/))) {
+							hideTimePicker();
+							return;
 						}
-						//First digit in minute mode
 						else {
-							if (parseInt(event.key) > 5) {
-								newVal = formatTime(hourPart + settings.separator + '0' + event.key);
-								if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) {
-									newVal = formatTime(settings.maximum);
-									setInputElementValue(newVal);
-									enteredDigits = '';
-								}
-								else if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) {
-									newVal = formatTime(settings.minimum);
-									setInputElementValue(newVal);
-									enteredDigits = '';
-								}
-								else {
-									setInputElementValue(newVal);
-									hideTimePicker();
-								}
-							} else {
-								newVal = formatTime(hourPart + settings.separator + event.key + '0');
-								if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) {
-									newVal = formatTime(settings.maximum);
-									enteredDigits = '';
-								}
-								if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) {
-									newVal = formatTime(settings.minimum);
-									enteredDigits = '';
-								}
-								setInputElementValue(newVal);
-								selectMinuteOnInputElement();
-							}
+							switchToMinuteMode();
+							selectMinuteOnInputElement();
+							return;
 						}
+					} else {
+						hideTimePicker();
+						return;
 					}
-
-					//entering second digit...
-					else {
-						if (!settings.duration) {
-							//Second digit in hour mode (for normal clock)
-							if (selectionMode == 'HOUR') {
-								var number = parseInt(enteredDigits + event.key);
-								var topNumber = selectionMode == 'HOUR' ? 24 : 60;
-								if (number == topNumber) {
-									enteredDigits = '';
-									newVal = '00' + settings.separator + minPart;
-									setInputElementValue(formatTime(newVal));
-									if (settings.precision == 60) {
-										hideTimePicker();
-									} else {
-										switchToMinuteMode();
-										selectMinuteOnInputElement();
-									}
-								}
-								else if (number > topNumber) {
-									enteredDigits = event.key;
-									newVal = '0' + enteredDigits + settings.separator + minPart;
-									setInputElementValue(formatTime(newVal));
-									selectHourOnInputElement();
-								}
-								else {
-									newVal = enteredDigits + event.key + settings.separator + minPart;
-									setInputElementValue(formatTime(newVal));
-									if (settings.precision == 60) {
-										hideTimePicker();
-									} else {
-										switchToMinuteMode();
-										selectMinuteOnInputElement();
-										enteredDigits = '';
-									}
-								}
-							}
-							//Second digit in minute mode (for normal clock)
-							else {
-								newVal = hourPart + settings.separator + enteredDigits + event.key;
-								setInputElementValue(formatTime(newVal));
-								hideTimePicker();
-							}
-						} else {
-
-							if (enteredDigits == '0') enteredDigits = '';
-
-							//Second digit in minute mode (for duration)
-							if (selectionMode == 'MINUTE') {
-								newVal = formatTime(hourPart + settings.separator + enteredDigits + event.key);
-								if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) {
-									newVal = formatTime(settings.maximum);
-									setInputElementValue(newVal);
-									enteredDigits = '';
-								}
-								else if (settings.minimum && !isTimeSmallerOrEquals(settings.minimum, newVal)) {
-									newVal = formatTime(settings.minimum);
-									setInputElementValue(newVal);
-									enteredDigits = '';
-								}
-								else {
-									setInputElementValue(newVal);
-									hideTimePicker();
-								}
-							}
-							//Second digit in hour mode (for duration)
-							else {
-								enteredDigits += event.key;
-								newVal = (isNegative ? '-' : '') + enteredDigits + settings.separator + minPart;
-								var switchToMinutes = false;
-								if (settings.maximum) {
-									if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
-										newVal = settings.maximum.substring(0, settings.maximum.indexOf(':')) + settings.separator + minPart;
-										if (!isTimeSmallerOrEquals(newVal, settings.maximum)) {
-											newVal = settings.maximum;
-										}
-										newVal = formatTime(newVal);
-										switchToMinutes = true;
-									} else if (!isTimeSmallerOrEquals((isNegative ? '-' : '') + enteredDigits + '0' + settings.separator + minPart, settings.maximum)) {
-										switchToMinutes = true;
-									}
-								}
-								if (settings.minimum) {
-									if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {
-										newVal = settings.minimum.substring(0, settings.minimum.indexOf(':')) + settings.separator + minPart;
-										if (!isTimeSmallerOrEquals(settings.minimum, newVal)) {
-											newVal = settings.minimum;
-										}
-										newVal = formatTime(newVal);
-										switchToMinutes = true;
-									} else if (!isTimeSmallerOrEquals(settings.minimum, (isNegative ? '-' : '') + enteredDigits + '0' + settings.separator + minPart)) {
-										switchToMinutes = true;
-									}
-								}
-								setInputElementValue(formatTime(newVal));
-								if (!switchToMinutes) {
-									selectHourOnInputElement();
-								} else {
-									if (settings.precision == 60) {
-										hideTimePicker();
-									} else {
-										switchToMinuteMode();
-										selectMinuteOnInputElement();
-										enteredDigits = '';
-									}
-								}
-							}
-						}
-					}
-					if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
-					autosize();
 				}
+				if (selectionMode == 'HOUR') selectHourOnInputElement();
+				else selectMinuteOnInputElement();
+				if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+				autosize();
 				repaintClock();
 			}
+
 
 			function getInputElementValue() {
 				if (isMobile()) {
@@ -1711,6 +1550,7 @@
 					return inputElement.val();
 				}
 			}
+
 
 			function setInputElementValue(value) {
 				if (isMobile()) {
