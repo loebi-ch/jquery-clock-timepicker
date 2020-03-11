@@ -1,7 +1,7 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.3.4
+ * Version: 2.3.5
  */
  (function($) {
 
@@ -141,6 +141,7 @@
 			var clockCenterY = parseInt(canvasSize / 2);
 			var clockOuterRadius = clockRadius - 16;
 			var clockInnerRadius = clockOuterRadius - 29;
+			var isTimeChanged = false;
 
 
 
@@ -370,7 +371,7 @@
 			  BLUR ALL
 			 ************************************************************************************************/
 			function blurAll() {
-				if ($(document.activeElement).parents('.clock-timepicker').length) return;
+				if (document.activeElement != inputElement.get(0)) return;
 				var tmp = document.createElement("input");
 				element.parent().get(0).appendChild(tmp);
 				tmp.focus();
@@ -672,6 +673,7 @@
 								autosize();
 							}
 						}
+						isTimeChanged = true;
 						repaintClockHourCanvas(h == 0 ? 24 : h, settings.duration && settings.durationNegative && selectorLength <= 12);
 						return true;
 					}
@@ -709,6 +711,7 @@
 							}
 							setInputElementValue(formatTime(newVal));
 						}
+						isTimeChanged = true;
 						repaintClockMinuteCanvas(m == 0 ? 60 : m, settings.duration && settings.durationNegative && selectorLength <= 12);
 						return true;
 					}
@@ -1106,7 +1109,7 @@
 					element.val(newValue);
 				}
 				blurAll();
-				if (!oldValue && newValue.match(new RegExp('^0+' + settings.separator + '00$'))) {
+				if (!isTimeChanged && !oldValue && newValue.match(new RegExp('^0+' + settings.separator + '00$'))) {
 					setInputElementValue('');
 				}
 				else if (oldValue != newValue) {
@@ -1124,6 +1127,7 @@
 					oldValue = newValue;
 				}
 				settings.onClose.call(element.get(0));
+				isTimeChanged = false;
 			}
 
 
@@ -1516,6 +1520,7 @@
 				if (isTimeSmallerOrEquals(settings.maximum, newVal)) newVal = settings.maximum;
 				newVal = formatTime(newVal);
 				setInputElementValue(newVal);
+				isTimeChanged = true;
 				var nextPossibleVal = (selectionMode == 'HOUR' ? (isNegative ? '-' : '') + (enteredDigits + '0') : hourPart) + settings.separator + (selectionMode == 'HOUR' ? '00' : (enteredDigits + '0'));
 				if ((selectionMode == 'MINUTE' && (enteredDigits.length == 2 || parseInt(enteredDigits + '0') >= 60)) || (selectionMode == 'HOUR' && !settings.duration && enteredDigits.length == 2) || (isNegative ? !isTimeSmallerOrEquals(settings.minimum, nextPossibleVal) : !isTimeSmallerOrEquals(nextPossibleVal, settings.maximum))) {
 					enteredDigits = '';

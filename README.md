@@ -242,6 +242,10 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.3.5**  
+- Issue #29 fixed.  
+- Blur input element on enter.  
+
 **Version 2.3.4**  
 - Method ```onInputElementKeyUp``` completely refactored to simplify and to solve issue #21.  
 - Arrow keys and +/- sign behavior refactored. No wheelspin anymore, stop at ```minimum``` and ```maximum``` values.  
