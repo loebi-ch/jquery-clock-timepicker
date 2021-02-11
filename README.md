@@ -242,6 +242,11 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.4.0**  
+- Position popup "fixed" instead of "absolute" to prevent popup from cut-off in containers with overflow: hidden.  
+- Slow down scroll wheel event so that the clock timepicker doesn't spin uncontrollable when using touchpad.  
+- Update to jQuery 3.5  
+
 **Version 2.3.5**  
 - Issue #29 fixed.  
 - Blur input element on enter.  
@@ -350,4 +355,4 @@ Changelog
 
 - - -
 
-This software is made available under the open source MIT License. &copy; 2020 [Andreas Loeber](http://github.com/loebi-ch) and [contributors](https://github.com/loebi-ch/jquery-clock-timepicker/graphs/contributors)
+This software is made available under the open source MIT License. &copy; 2021 [Andreas Loeber](http://github.com/loebi-ch) and [contributors](https://github.com/loebi-ch/jquery-clock-timepicker/graphs/contributors)

@@ -1,7 +1,7 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.3.5
+ * Version: 2.4.0
  */
  (function($) {
 
@@ -142,6 +142,7 @@
 			var clockOuterRadius = clockRadius - 16;
 			var clockInnerRadius = clockOuterRadius - 29;
 			var isTimeChanged = false;
+			var lastMouseWheelTimestamp = 0;
 
 
 
@@ -213,7 +214,7 @@
 			popup.css('display', 'none')
 				 .css('zIndex', 99999)
 				 .css('cursor', 'default')
-				 .css('position', 'absolute')
+				 .css('position', 'fixed')
 				 .css('width', popupWidth + 'px')
 				 .css('backgroundColor', settings.colors.popupBackgroundColor)
 				 .css('box-shadow', '0 4px 20px 0px rgba(0, 0, 0, 0.14)')
@@ -222,8 +223,7 @@
 				 .css('user-select', 'none');
 			popup.on('contextmenu', function() { return false; });
 			if (isMobile()) {
-				popup.css('position', 'fixed')
-					 .css('left', '40px')
+				popup.css('left', '40px')
 					 .css('top', '40px');
 
 				window.addEventListener("orientationchange", function() {
@@ -567,6 +567,8 @@
 			function processMouseWheelEvent(event) {
 				var e = window.event || event;
 				event.preventDefault();
+				if (new Date().getTime() - lastMouseWheelTimestamp < 100) return;
+				lastMouseWheelTimestamp = new Date().getTime();
 				var delta = Math.max(-1, Math.min(1, (e.wheelDelta || -e.detail)));
 				(new RegExp('^(-|\\+)?([0-9]+)(.([0-9]{1,2}))?$')).test(getInputElementValue());
 				var negative = settings.duration && settings.durationNegative && RegExp.$1 == '-' ? true : false;
@@ -1067,31 +1069,22 @@
 				if (isMobile()) {
 					if (background) background.stop().css('opacity', 0).css('display', 'block').animate({opacity: 1}, 300);
 				} else {
-					//Adjust popup's position horizontally
-					if (popup.outerWidth() > element.outerWidth()) {
-						var moveToLeft = parseInt((popup.outerWidth() - element.outerWidth()) / 2);
-						if (moveToLeft < element.offset().left) {
-							popup.css('left', -moveToLeft + 'px');
-						}
-					}
-					//Adjust popup's position vertically
-					var freeTopSpace = element.offset().top - $(window).scrollTop();
-					var freeBottomSpace = window.innerHeight - freeTopSpace - element.outerHeight();
-					if (freeBottomSpace < popup.outerHeight() && element.offset().top > popup.outerHeight()) {
-						if (freeTopSpace < popup.outerHeight()) {
-							if (freeTopSpace > freeBottomSpace + element.outerHeight()) {
-								popup.css('top', -popup.outerHeight() + parseInt(element.css('marginTop')) + 'px');
-							} else {
-								popup.css('top', parseInt(element.css('marginTop')) + element.outerHeight() + 'px');
-							}
-						} else {
-							popup.css('top', -popup.outerHeight() + parseInt(element.css('marginTop')) + 'px');
-						}
-					} else {
-						popup.css('top', parseInt(element.css('marginTop')) + element.outerHeight() + 'px');
-					}
+					positionPopup();
+					$(window).on('scroll.clockTimePicker', _ => {
+						positionPopup();
+					});
 				}
 				settings.onOpen.call(element.get(0));
+			}
+			
+			function positionPopup() {
+				var top = element.offset().top - $(window).scrollTop() + element.outerHeight();
+				if (top + popup.outerHeight() > window.innerHeight) {
+					var newTop = element.offset().top - $(window).scrollTop() - popup.outerHeight();
+					if (newTop >= 0) top = newTop;
+				}
+				var left = element.offset().left - $(window).scrollLeft() - parseInt((popup.outerWidth() - element.outerWidth()) / 2);
+				popup.css('left', left + 'px').css('top', top + 'px');
 			}
 
 
@@ -1100,6 +1093,7 @@
 			  HIDES THE TIME PICKER
 			 ************************************************************************************************/
 			function hideTimePicker() {
+				$(window).off('scroll.clockTimePicker');
 				var newValue = formatTime(element.val());
 				enteredDigits = '';
 				popup.css('display', 'none');
