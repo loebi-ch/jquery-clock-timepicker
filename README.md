@@ -70,6 +70,14 @@ If you want to change the value programmatically at runtime on an already initia
 $('.your-time-field').clockTimePicker('value', '08:00');
 ```
 
+Use the following code to show or hide a clock time picker programmatically:
+
+```javascript
+$('.your-time-field').clockTimePicker('show');
+$('.your-time-field').clockTimePicker('hide');
+```
+
+
 
 Options
 -------
@@ -241,6 +249,11 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 
 Changelog
 ---------
+
+**Version 2.5.0**  
+- Don't open clock canvas when setting value programmatically with ```$('.your-time-field').clockTimePicker('value', '08:00');```  
+- New function to show clock canvas programmatically with ```$('.your-time-field').clockTimePicker('show');```  
+- New function to hide clock canvas programmatically with ```$('.your-time-field').clockTimePicker('hide');```  
 
 **Version 2.4.0**  
 - Position popup "fixed" instead of "absolute" to prevent popup from cut-off in containers with overflow: hidden.  

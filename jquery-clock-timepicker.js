@@ -1,7 +1,7 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.4.0
+ * Version: 2.5.0
  */
  (function($) {
 
@@ -113,7 +113,13 @@
 						$(this).val(formatTime(_value));
 						var mobileInput = $(this).parent().find('.clock-timepicker-mobile-input');
 						if (mobileInput.length > 0) mobileInput.val(formatTime(_value));
+					}
+					else if (options == 'show') {
 						$(this).parent().find('canvas:first').trigger('keydown');
+					}
+					else if (options == 'hide') {
+						$(this).parent().find('.clock-timepicker-popup').css('display', 'none');
+						$(this).blur();
 					}
 					else console.log('%c[jquery-clock-timepicker] Invalid option passed to clockTimePicker: ' + options, 'color:red');
 				}
