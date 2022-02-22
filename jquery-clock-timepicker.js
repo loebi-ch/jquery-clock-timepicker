@@ -1,11 +1,12 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.5.0
+ * Version: 2.6.0
  */
  (function($) {
 
 	$.fn.clockTimePicker = function(options, _value) {
+		if (typeof options == 'string' && (options == 'value' || options == 'val') && !_value) return $(this).val();
 
 		/************************************************************************************************
 		  DEFAULT SETTINGS (CAN BE OVERRIDDEN WITH THE OPTIONS ARGUMENT)
@@ -109,7 +110,7 @@
 				else {
 					options = options.toLowerCase();
 					if (options == 'dispose') disposeTimePicker($(this));
-					else if (options == 'value') {
+					else if (options == 'value' || options == 'val') {
 						$(this).val(formatTime(_value));
 						var mobileInput = $(this).parent().find('.clock-timepicker-mobile-input');
 						if (mobileInput.length > 0) mobileInput.val(formatTime(_value));
@@ -415,6 +416,7 @@
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);
 							setInputElementValue(formatTime(newVal));
 							repaintClock();
+							element.attr('value', newVal.replace(/^\+/, ''));
 							settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 							if (selectionMode == 'HOUR') selectHourOnInputElement();
 							else selectMinuteOnInputElement();
@@ -473,6 +475,7 @@
 							if (settings.maximum && !isTimeSmallerOrEquals(newVal, settings.maximum)) newVal = formatTime(settings.maximum);
 							setInputElementValue(formatTime(newVal));
 							repaintClock();
+							element.attr('value', newVal.replace(/^\+/, ''));
 							settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 							if (selectionMode == 'HOUR') selectHourOnInputElement();
 							else selectMinuteOnInputElement();
@@ -611,7 +614,10 @@
 					repaintClock();
 					if (selectionMode == 'HOUR') selectHourOnInputElement();
 					else selectMinuteOnInputElement();
-					if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+					if (newVal != oldVal) {
+						element.attr('value', newVal.replace(/^\+/, ''));
+						settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+					}
 				}
 			}
 
@@ -675,6 +681,7 @@
 								var oldVal = getInputElementValue();
 								if (newVal != oldVal) {
 									if (settings.vibrate) navigator.vibrate(10);
+									element.attr('value', newVal.replace(/^\+/, ''));
 									settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 								}
 								setInputElementValue(formatTime(newVal));
@@ -715,6 +722,7 @@
 							var oldVal = getInputElementValue();
 							if (newVal != oldVal) {
 								if (settings.vibrate) navigator.vibrate(10);
+								element.attr('value', newVal.replace(/^\+/, ''));
 								settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 							}
 							setInputElementValue(formatTime(newVal));
@@ -1382,12 +1390,18 @@
 						} else {
 							selectHourOnInputElement();
 						}
-						if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+						if (oldVal != newVal) {
+							element.attr('value', newVal.replace(/^\+/, ''));
+							settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+						}
 					} else {
 						if (m == 0) {
 							if (h == 0 && !settings.required) {
 								setInputElementValue('');
-								if (oldVal != '') settings.onAdjust.call(element.get(0), '', oldVal.replace(/^\+/, ''));
+								if (oldVal != '') {
+									element.attr('value', '');
+									settings.onAdjust.call(element.get(0), '', oldVal.replace(/^\+/, ''));
+								}
 								hideTimePicker();
 							} else {
 								switchToHourMode();
@@ -1397,7 +1411,10 @@
 							newVal = (negative ? '-' : '') + (h < 10 && !settings.duration ? '0' : '') + h + settings.separator + '00';
 							setInputElementValue(formatTime(newVal));
 							selectMinuteOnInputElement();
-							if (oldVal != newVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+							if (oldVal != newVal) {
+								element.attr('value', newVal.replace(/^\+/, ''));
+								settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+							}
 						}
 					}
 					autosize();
@@ -1443,6 +1460,7 @@
 					if (oldVal[0] == '-') {
 						var newVal = oldVal.substring(1);
 						setInputElementValue(formatTime(newVal));
+						element.attr('value', newVal);
 						settings.onAdjust.call(element.get(0), newVal, oldVal);
 						autosize();
 						repaintClock();
@@ -1457,6 +1475,7 @@
 					if (oldVal[0] != '-') {
 						var newVal = '-' + oldVal;
 						setInputElementValue(formatTime(newVal));
+						element.attr('value', newVal);
 						settings.onAdjust.call(element.get(0), newVal, oldVal);
 						autosize();
 						repaintClock();
@@ -1492,6 +1511,7 @@
 					}
 					if (oldVal != newVal) {
 						setInputElementValue(formatTime(newVal));
+						element.attr('value', newVal.replace(/^\+/, ''));
 						settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
 						autosize();
 						repaintClock();
@@ -1541,7 +1561,10 @@
 				}
 				if (selectionMode == 'HOUR') selectHourOnInputElement();
 				else selectMinuteOnInputElement();
-				if (newVal != oldVal) settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+				if (newVal != oldVal) {
+					element.attr('value', newVal.replace(/^\+/, ''));
+					settings.onAdjust.call(element.get(0), newVal.replace(/^\+/, ''), oldVal.replace(/^\+/, ''));
+				}
 				autosize();
 				repaintClock();
 			}

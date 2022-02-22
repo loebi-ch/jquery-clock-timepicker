@@ -250,6 +250,12 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.6.0**  
+- Minified JavaScript without eval() to solve issue #34.  
+- Setting HTML value attribute upon time change.  
+- Get value by calling ```$('.your-time-field').clockTimePicker('value');``` or ```$('.your-time-field').clockTimePicker('val');```  
+- Set value by calling ```$('.your-time-field').clockTimePicker('value', '08:00');``` or ```$('.your-time-field').clockTimePicker('val', '08:00');```  
+
 **Version 2.5.0**  
 - Don't open clock canvas when setting value programmatically with ```$('.your-time-field').clockTimePicker('value', '08:00');```  
 - New function to show clock canvas programmatically with ```$('.your-time-field').clockTimePicker('show');```  
