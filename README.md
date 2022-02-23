@@ -10,6 +10,9 @@ A free jQuery Plug-in to select the time with a clock inspired by the Android ti
 
 Requirements
 ------------
+
+Note: you need the regular version of jQuery as the slim version does not include effects, which this library requires
+
 * [jQuery](https://jquery.com/)
 
 
