@@ -12,6 +12,8 @@ Requirements
 ------------
 * [jQuery](https://jquery.com/)
 
+Note: You need the regular version of jQuery as the slim version does not include effects, which this library requires.
+
 
 Installation
 ------------
@@ -250,6 +252,10 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.6.1**  
+- jQuery version notice included in README.md  
+- ClockTimePicker's version number included as query parameter when loading ```jquery-clock-timepicker.min.js``` in index.html to solve browser caching issue for new released versions.  
+
 **Version 2.6.0**  
 - Minified JavaScript without eval() to solve issue #34.  
 - Setting HTML value attribute upon time change.  
@@ -374,4 +380,4 @@ Changelog
 
 - - -
 
-This software is made available under the open source MIT License. &copy; 2021 [Andreas Loeber](http://github.com/loebi-ch) and [contributors](https://github.com/loebi-ch/jquery-clock-timepicker/graphs/contributors)
+This software is made available under the open source MIT License. &copy; 2022 [Andreas Loeber](http://github.com/loebi-ch) and [contributors](https://github.com/loebi-ch/jquery-clock-timepicker/graphs/contributors)

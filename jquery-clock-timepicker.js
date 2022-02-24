@@ -1,7 +1,7 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.6.0
+ * Version: 2.6.1
  */
  (function($) {
 
