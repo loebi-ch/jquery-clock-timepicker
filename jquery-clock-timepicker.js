@@ -31,6 +31,7 @@
 				signButtonColor: '#FFFFFF',
 				signButtonBackgroundColor: '#0797FF'
 			},
+			contextmenu: false,
 			duration: false,
 			durationNegative: false,
 			fonts: {
@@ -1338,18 +1339,22 @@
 
 
 			function onInputElementDragSelectContextMenu(event) {
+				if ((!settings.contextmenu) || (event.which == 1)) {
 				event.stopImmediatePropagation();
 				event.preventDefault();
 				return false;
 			}
+			}
 
 
 			function onInputElementMouseDown(event) {
+				if ((!settings.contextmenu) || (event.which == 1)) {
 				processClick(event);
 				event.stopImmediatePropagation();
 				event.stopPropagation();
 				event.preventDefault();
 				return false;
+				}
 			}
 
 
