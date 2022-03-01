@@ -1343,7 +1343,7 @@
 				event.stopImmediatePropagation();
 				event.preventDefault();
 				return false;
-			}
+				}
 			}
 
 
