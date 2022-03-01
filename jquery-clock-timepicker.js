@@ -1,7 +1,7 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.6.1
+ * Version: 2.6.2
  */
  (function($) {
 
@@ -15,6 +15,7 @@
 			afternoonHoursInOuterCircle: false,
 			alwaysSelectHoursFirst: false,
 			autosize: false,
+			contextmenu: false,
 			colors: {
 				buttonTextColor: '#0797FF',
 				clockFaceColor: '#EEEEEE',
@@ -1338,18 +1339,22 @@
 
 
 			function onInputElementDragSelectContextMenu(event) {
-				event.stopImmediatePropagation();
-				event.preventDefault();
-				return false;
+				if (!settings.contextmenu || event.which == 1) {
+					event.stopImmediatePropagation();
+					event.preventDefault();
+					return false;
+				}
 			}
 
 
 			function onInputElementMouseDown(event) {
-				processClick(event);
-				event.stopImmediatePropagation();
-				event.stopPropagation();
-				event.preventDefault();
-				return false;
+				if (!settings.contextmenu || event.which == 1) {
+					processClick(event);
+					event.stopImmediatePropagation();
+					event.stopPropagation();
+					event.preventDefault();
+					return false;
+				}
 			}
 
 

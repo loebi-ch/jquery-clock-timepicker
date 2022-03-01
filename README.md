@@ -144,6 +144,11 @@ The color of the time selector.
 The text color of the number that is selected.  
 *default: '#FFFFFF'*
 
+- **contextmenu**  
+If true, the browser's or a custom context menu is shown on right click.  
+If false, the right click behaves like the left click and the clock is shown.  
+*default: false*
+
 - **duration**  
 If true, the hours can be greater than 23.  
 *default: false*
@@ -251,6 +256,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 
 Changelog
 ---------
+
+**Version 2.6.2**  
+- New configuration setting ```contextmenu``` added. See above in the Options section for explanation. Closes pull request #43.  
 
 **Version 2.6.1**  
 - jQuery version notice included in README.md  
