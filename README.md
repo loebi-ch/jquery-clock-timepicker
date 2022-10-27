@@ -257,6 +257,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.6.3**  
+- Made disturbing blinking cursor transparent, so it's not visible anymore.  
+
 **Version 2.6.2**  
 - New configuration setting ```contextmenu``` added. See above in the Options section for explanation. Closes pull request #43.  
 

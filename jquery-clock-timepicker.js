@@ -1,7 +1,7 @@
 /*
  * Author:  Andreas Loeber
  * Plugin:  jquery-clock-timerpicker
- * Version: 2.6.2
+ * Version: 2.6.3
  */
  (function($) {
 
@@ -66,7 +66,7 @@
 		/************************************************************************************************
 		  DYNAMICALLY INSERT CSS CODE FOR SELECTION ON MOBILE
 		 ************************************************************************************************/
-		var css = '.clock-timepicker input { caret-color: white; }';
+		var css = '.clock-timepicker input { caret-color: transparent; }';
 		if (isMobile()) css += ' .clock-timepicker input::selection { background:rgba(255,255,255,0.6); } .clock-timepicker input::-moz-selection { background:rgba(255,255,255,0.6); }';
 		function cssAlreadyInitialized() {
 			var cssFound = false;
