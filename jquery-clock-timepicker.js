@@ -852,7 +852,7 @@
 
 				//Paint hour numbers in outer circle
 				ctx.font = settings.fonts.clockOuterCircleFontSize + 'px ' + settings.fonts.fontFamily;
-				for(i = 1; i <= 12; i++) {
+				for(let i = 1; i <= 12; i++) {
 					var angle = Math.PI / 6 * (i - 3);
 					var s = i;
 					if (settings.afternoonHoursInOuterCircle) {
@@ -880,7 +880,7 @@
 
 				//Paint hour numbers in inner circle
 				ctx.font = settings.fonts.clockInnerCircleFontSize + 'px ' + settings.fonts.fontFamily;
-				for(i = 1; i <= 12; i++) {
+				for(let i = 1; i <= 12; i++) {
 					var angle = Math.PI / 6 * (i - 3);
 					var s = i;
 					if (!settings.afternoonHoursInOuterCircle) {
@@ -971,7 +971,7 @@
 
 				//Paint minute numbers 00 - 55
 				ctx.font = settings.fonts.clockOuterCircleFontSize + 'px ' + settings.fonts.fontFamily;
-				for(i = 1; i <= 12; i++) {
+				for(let i = 1; i <= 12; i++) {
 					if (Math.floor(i * 5 / settings.precision) != i * 5 / settings.precision) continue;
 					var angle = Math.PI / 6 * (i - 3);
 					if (min == i * 5 || (min == 0 && i == 12)) ctx.fillStyle = settings.colors.selectorNumberColor;
