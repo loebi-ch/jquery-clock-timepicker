@@ -257,6 +257,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.6.4**  
+- for loop variable i declared with let.  
+
 **Version 2.6.3**  
 - Made disturbing blinking cursor transparent, so it's not visible anymore.  
 
