@@ -257,6 +257,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.6.5**  
+- Bugfix for undefined variable in canvas event methods.
+
 **Version 2.6.4**  
 - for loop variable i declared with let.  
 
@@ -394,4 +397,4 @@ Changelog
 
 - - -
 
-This software is made available under the open source MIT License. &copy; 2022 [Andreas Loeber](http://github.com/loebi-ch) and [contributors](https://github.com/loebi-ch/jquery-clock-timepicker/graphs/contributors)
+This software is made available under the open source MIT License. &copy; 2024 [Andreas Loeber](http://github.com/loebi-ch) and [contributors](https://github.com/loebi-ch/jquery-clock-timepicker/graphs/contributors)
