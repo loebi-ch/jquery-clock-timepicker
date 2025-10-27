@@ -1,6 +1,12 @@
 Clock Timepicker Plugin for jQuery
 ==================================
 
+!!!  
+THIS PROJECT IS NO LONGER MAINTAINED.  
+PLEASE USE THE NEW [CLOCK-TIMEPICKER](https://www.npmjs.com/package/clock-timepicker)  
+!!!
+---------------------------------------------------------------------------------  
+  
 <img src="https://plugins.slyweb.ch/jquery-clock-timepicker/screenshot.png" alt="jquery-clock-timepicker screenshot" />
 
 [See a demo here](https://plugins.slyweb.ch/jquery-clock-timepicker)
