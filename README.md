@@ -263,6 +263,9 @@ Submit a [GitHub Issues request](https://github.com/loebi-ch/jquery-clock-timepi
 Changelog
 ---------
 
+**Version 2.6.6**  
+- END OF MAINTENANCE
+
 **Version 2.6.5**  
 - Bugfix for undefined variable in canvas event methods.
 
