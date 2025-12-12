@@ -3,7 +3,7 @@ Clock Timepicker Plugin for jQuery
 
 !!!  
 THIS PROJECT IS NO LONGER MAINTAINED.  
-PLEASE USE THE NEW [CLOCK-TIMEPICKER](https://www.npmjs.com/package/clock-timepicker)  
+PLEASE USE THE NEW [CLOCK-TIMEPICKER](https://github.com/loebi-ch/clock-timepicker)  
 !!!
 ---------------------------------------------------------------------------------  
   
